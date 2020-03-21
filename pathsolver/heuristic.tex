@@ -1,0 +1,101 @@
+\documentclass[a4]{article}
+
+\usepackage{listings}
+\usepackage{amsfonts}
+
+\begin{document}
+
+\section{Problemstellung}
+
+\subsection{Ziele}
+
+\begin{itemize}
+\item alle patienten sollen mit den benötigten medikamenten versorgt werden
+\item die meisten fahrer sollen wenn sie fahren eine maximale auslastung haben (i.e., wenig einzelfahrten)
+\item minimierung der anzahl der fahrer um exposition freiwilliger zu reduzieren
+\end{itemize}
+
+\subsection{Out of Scope}
+
+\begin{itemize}
+\item apotheken wollen möglicherweise nicht unbedingt ihr lager leer verkaufen
+\item es wird kein perfektes optimum angestrebt, dies würde das TSP lösen was NP vollständig wäre
+\item entscheidung sollte ein medikament nicht außreichend vorhanden sein
+\item minimale anzahl gleichzeitiger fahrten
+\item keine insg. kürzeste gefahrene distanz
+\end{itemize}
+
+\subsection{Mögliche Verbesserungen}
+
+\begin{itemize}
+\item fahrdistanz kann limitiert werden
+\item ladung kann limitiert werden
+\end{itemize}
+
+\section{Heuristic}
+
+
+\section{Input}
+
+\begin{math}
+  D = \{set\ of\ driver\} \\
+  d_d : D \rightarrow \mathbb{N}\ (max\ distance\ of\ driver)\\
+  A = \{set\ of\ pharmacies\} \\
+  P = \{set\ of\ patients\} \\
+  M = \{set\ of\ meds\} \\
+  d_{DA} : DxA \rightarrow \mathbb{N}\ (distance\ between\ driver\ and\ pharmacy)\\
+  T_{DA} = \{ (d,a) \in D \times A\ |\ d_{DA}((d,a)) \le d_d(d) \} \\
+  T_{DP} = \{ (d,p) \in D \times P\ |\ d_{DP}((d,p)) \le d_d(d) \} \\
+  N = \{set\ of\ needed\ meds\ by\ patients \} \subset P x M \\
+  S = \{set\ of\ stored\ meds\ by\ pharmacies \} \subset A x M \\
+  PD = \{ (d,a,p,m) \in D \times A \times P \times P \times M |\\ (d,a) \in T_{DA} \land (d,p) \in T_{DP} \land (a,m) \in S \land (p,m) \in N\} \\
+\end{math}
+
+
+\section{Algorithmus}
+
+Zuerst müssen wir berechnen welche schritte ein fahrer abarbeiten soll, bevor wir die optimale route konzipieren
+
+\begin{figure}[h!]
+\begin{lstlisting}[escapeinside={(*}{*)}]
+  sort (*$PD$*) by driver, pharmacy, p, m
+  drives = {}
+  do until (*$PD$*) is empty
+      (*$tuple \leftarrow first(PD)$*)
+      drives (*$\leftarrow tuple$*)
+      delete in (*$PD$*) where element (*$(\_,\_,p,m)$*)
+      reduce (*$m$*) in stock of (*$p$*)
+      if stock of (*$m$*) in (*$p$*) empty
+         delete in (*$PD$*) where element (*$(\_,\_,p,\_)$*)
+  return drives
+\end{lstlisting}
+\caption{Dieser Algorithmus gibt uns eine heuristisch optimierte zuteilung von fahrern zu routen von apotheken zu patienten mit medikament}
+\end{figure}
+
+Der vorherige algorithmus hat uns nun ein set gegeben bei dem alle patienten bedient werden und zwar von der minimalen anzahl an fahrern. Wir betrachten nun einen algorithmus der für ein set das alle tuple beinhaltet die einem einzelnden fahrer zugeordnet sind eine optimale route berechnet.
+
+\begin{figure}[h]
+\begin{lstlisting}[escapeinside={(*}{*)}]
+  input set (*$D \subset PD$*)
+  drive_order = {}
+  sort (*$D$*) by frequency(a)
+  a = first(*$(D)[1]$*)
+  driver_order (*$\leftarrow a$*)
+  do until (*$D$*) is empty
+  rem_steps = { p in D who were served by a and all remaining a in D }
+  // quadratic solution of TSP
+  do until (*$rem\_steps$*) is empty
+     closest (*$\leftarrow smallest\_distance(drive\_order[-1],rem\_steps)$*)
+     drive_order (*$\leftarrow closest$*)
+     delete from (*$rem\_steps$*) (*$closest$*)
+\end{lstlisting}
+\caption{Dieser Algorithmus gibt uns die 'optimale route' für einen fahrer}
+\end{figure}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
