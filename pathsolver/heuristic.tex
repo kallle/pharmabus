@@ -88,6 +88,8 @@ Der vorherige algorithmus hat uns nun ein set gegeben bei dem alle patienten bed
      closest (*$\leftarrow smallest\_distance(drive\_order[-1],rem\_steps)$*)
      drive_order (*$\leftarrow closest$*)
      delete from (*$rem\_steps$*) (*$closest$*)
+     if (*$closest$*) is pharmacy
+        rem_steps += {p in D who were served by (*$closest$*))
 \end{lstlisting}
 \caption{Dieser Algorithmus gibt uns die 'optimale route' für einen fahrer}
 \end{figure}
