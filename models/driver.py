@@ -46,4 +46,7 @@ class Driver:
                 'storage_dimensions={self._storage_dimensions!r})'
                 ).format(self=self)
 
+    def with_id(self, id):
+        return Driver(id, self._name, self._range, self._address, self._coordinates, self._cooler_dimensions, self._storage_dimensions)
+
 

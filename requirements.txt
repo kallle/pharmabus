@@ -1,2 +1,3 @@
 Flask==1.1.1
 openrouteservice
+flask-simplelogin==0.0.7

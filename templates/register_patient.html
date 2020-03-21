@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Register Patient{% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('register_patient') }}" method="post">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input name="name" id="name" required>
+        <br/>
+        <label for="plz">PLZ</label>
+        <input name="plz" id="plz" required>
+        <br/>
+        <label for="street">Straße</label>
+        <input name="street" id="street" required>
+        <br/>
+        <label for="number">Hausnummer</label>
+        <input name="number" id="number" required>
+        <br/>
+        <label for="username">Username</label>
+        <input name="username" id="username" required>
+        <br/>
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required>
+        <br/>
+        <input type="submit" value="Register">
+<input type="submit" value="Send">
+</form>
+{% endblock %}
