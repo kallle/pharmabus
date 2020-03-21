@@ -15,7 +15,8 @@ CREATE TABLE drivers (
        addr_plz         integer,
        addr_street      text,
        addr_street_nr   integer,
-       koo              text,
+       koo_lat          double,
+       koo_long         double,
        cooler_dim_x     integer,
        cooler_dim_y     integer,
        cooler_dim_z     integer,
@@ -30,7 +31,8 @@ CREATE TABLE patients (
        addr_plz         integer,
        addr_street      text,
        addr_street_nr   integer,
-       koo              text
+       koo_long         double,
+       koo_lat          double
 );
 
 
@@ -40,7 +42,8 @@ CREATE TABLE pharmacies (
        addr_plz         integer,
        addr_street      text,
        addr_street_nr   integer,
-       koo              text
+       koo_long         double,
+       koo_lat          double
 );
 
 
@@ -53,7 +56,8 @@ CREATE TABLE meds (
        dimension_x  integer,
        dimension_y  integer,
        dimension_z  integer,
-       requries_cooling integer
+       requries_cooling integer,
+       requires_recipe integer
 );
 
 
