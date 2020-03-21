@@ -1,5 +1,12 @@
-DROP TABLE IF EXISTS Drivers CASCADE;
-DROP TABLE IF EXISTS Patients CASCADE;
+DROP TABLE IF EXISTS drivers;
+DROP TABLE IF EXISTS patients;
+DROP TABLE IF EXISTS pharmacies;
+DROP TABLE IF EXISTS meds;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS order_contains;
+DROP TABLE IF EXISTS pharmacy_stores;
+DROP TABLE IF EXISTS users;
+
 
 CREATE TABLE drivers (
        id               integer primary key,
@@ -62,12 +69,13 @@ CREATE TABLE orders (
 );
 
 
-CREATE TABLE order_content (
-       order_id             integer primary key,
-       med_id               integer primary key,
+CREATE TABLE order_contains (
+       order_id             integer,
+       med_id               integer,
        served_by            integer,
        amount               integer,
        recipe_with_customer integer,
+       PRIMARY KEY (order_id, med_id),
        FOREIGN KEY (order_id)
        REFERENCES orders (id),
        FOREIGN KEY (med_id)
@@ -78,13 +86,14 @@ CREATE TABLE order_content (
 
 
 CREATE TABLE pharmacy_stores (
-       pharmacy     integer primary key,
-       med          integer primary key,
+       pharmacy_id  integer,
+       med_id       integer,
        amount       integer,
-       FOREIGN KEY (pharmacy)
+       PRIMARY KEY (pharmacy_id, med_id),
+       FOREIGN KEY (pharmacy_id)
        REFERENCES pharmacies(id),
-       FOREIGN KEY (med)
-       REFERENCES meds(id)
+       FOREIGN KEY (med_id)
+       REFERENCES meds (id)
 );
 
 
