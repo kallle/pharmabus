@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ## Run
 
 ```
-FLASK_APP=main.py flask run
+bash run.sh
 ```
 
 ## Develop
