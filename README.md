@@ -35,3 +35,6 @@ Users can sign an up and upload a order of medication. The backend will then sch
 ### Out of Scope
 - Data protection foo
 - How prescriptions are handled
+- legality of having citizens deliver prescription drugs
+- legality of ordering prescription drugs online
+- payment processing
