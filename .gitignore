@@ -2,3 +2,4 @@ venv
 *.ipr
 *.iml
 *.iws
+*~
