@@ -1,4 +1,4 @@
-class Coordinate:
+class Pharmacy:
     def __init__(self, id, name, address, coordinates):
         self._id = id
         self._name = name
