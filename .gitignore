@@ -4,3 +4,6 @@ venv
 *.iws
 *~
 *.sqlite
+*.log
+*.aux
+*/auto/*
