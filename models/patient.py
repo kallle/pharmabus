@@ -1,5 +1,5 @@
-# TODO: Add medication storage
-class Pharmacy:
+# TODO: keep list of orders in here?
+class Patient:
     def __init__(self, id, name, address, coordinates):
         self._id = id
         self._name = name
@@ -23,9 +23,8 @@ class Pharmacy:
         return self._coordinates
 
     def __repr__(self):
-        return ('Pharmacy(id={self._id!r}, '
+        return ('Patient(id={self._id!r}, '
                 'name={self._name!r}, '
                 'address={self._address!r}, '
                 'coordinates={self._coordinates!r})'
                 ).format(self=self)
-
