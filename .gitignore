@@ -3,3 +3,4 @@ venv
 *.iml
 *.iws
 *~
+*.sqlite
