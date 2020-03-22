@@ -69,9 +69,9 @@ def is_overlord(username):
 
 def is_patient(username):
     if compare_role(username, Role.PATIENT):
-        return
+        return '', True
     else:
-        return 'User {:1!l} is not a patient!'.format(username)
+        return 'User {:1!l} is not a patient!'.format(username), False
 
 
 def is_driver(username):
@@ -221,8 +221,8 @@ def submit_order():
         conn = get_db()
         c = conn.cursor()
         patient_id = get_patient_id(c, get_username())
-        med_id = get_medication_by_name_supplier(handelsname, hersteller, c)
-        if patient_id == None or med_id == None:
+        med_id = get_medication_by_name_supplier(handelsname, hersteller)
+        if med_id == None:
             raise InvalidOrderException("You are either not a patient or the medication does not exist")
         insert_order(patient_id, med_id, amount, recipe_p, c)
         conn.commit()
