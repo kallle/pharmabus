@@ -52,6 +52,7 @@ CREATE TABLE meds (
        pzn          text,
        product_name text,
        ingredient   text,
+	   supplier		text,
        quantity     text,
        dimension_x  integer,
        dimension_y  integer,
