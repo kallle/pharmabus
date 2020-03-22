@@ -296,8 +296,12 @@ def start_calculation():
     orders = get_all_orders(c)
     print("I have {} orders".format(len(orders)))
     if len(orders) == 0:
+        flash("Keine mögliche Lösung")
         return list()
     base_set = generate_delivery_item_base_set(drivers, pharmacies, orders)
+    if len(base_set) == 0:
+        flash("Keine mögliche Lösung")
+        return list()
     reduced_set = delivery_set_reducer(base_set)
     driver_based_delivery_sets = delivery_set_splitter(reduced_set)
     routes = list()
