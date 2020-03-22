@@ -10,7 +10,7 @@ import settings
 from data import dao
 from data.dao import get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
     process_stock, get_patient_id
-from helper import process_uploaded_csv_file, read_stock, InvalidOrderException
+from helper import process_uploaded_csv_file, read_stock, InvalidOrderException, allowed_file
 from models.address import Address
 from models.coordinates import get_default_coordinates
 from models.dimensions import get_default_dimensions
@@ -45,14 +45,14 @@ def check_my_users(user):
     c = conn.cursor()
     username = user['username']
     password = user['password']
-    if username == 'DreadPirateRoberts' and compare_digest(password, 'secret'):
+    if username == settings.OVERLORD_NAME and compare_digest(password, settings.OVERLORD_PWD):
         return True
     success = dao.check_login(c, username, password)
     return success
 
 
 def compare_role(username, role):
-    if username == 'DreadPirateRoberts':
+    if username == settings.OVERLORD_NAME:
         return Role.OVERLORD
     conn = get_db()
     c = conn.cursor()
@@ -61,11 +61,10 @@ def compare_role(username, role):
 
 
 def is_overlord(username):
-    if username == 'DreadPirateRoberts':
+    if username == settings.OVERLORD_NAME:
         return
     else:
         return 'User {:1!l} is not the boss!'.format(username)
-
 
 
 def is_patient(username):
@@ -93,7 +92,7 @@ def is_logged_in_as_overlord():
     if not is_logged_in():
         return False
     username = session.get('simple_username')
-    return username == 'DreadPirateRoberts'
+    return username == settings.OVERLORD_NAME
 
 
 def is_logged_in_as_pharmacy():
@@ -232,9 +231,6 @@ def submit_order():
         return render_template("submit_order.html")
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ['csv']
 
 
 @app.route('/upload_stock', methods=['GET', 'POST'])
