@@ -96,9 +96,9 @@ def get_patient_id_by_username(username, cursor):
 
 
 def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
-    qry = ('SELECT id
-            FROM meds
-            WHERE pzn = ?')
+    qry = ('SELECT id '
+           'FROM meds '
+           'WHERE pzn = ?')
     cursor.execute(qry, (pzn))
     med_id = cursor.fetchone()
     if med_id:
