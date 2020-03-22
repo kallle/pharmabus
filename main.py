@@ -8,7 +8,7 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
-from helper import process_uploaded_csv_file
+from helper import process_uploaded_csv_file, read_stock
 from models.address import Address
 from models.coordinates import get_default_coordinates
 from models.dimensions import get_default_dimensions
@@ -242,7 +242,8 @@ def upload_stock():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             data = process_uploaded_csv_file(file.stream)
-            pprint.pprint(data)
+            stock = read_stock(data)
+            pprint.pprint(stock)
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")

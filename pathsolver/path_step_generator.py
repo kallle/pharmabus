@@ -55,7 +55,7 @@ def generate_delivery_item_base_set(drivers, pharmacies, orders):
     for doelement in driver_order_set:
         for dpelement in driver_pharmacy_set:
             if doelement[2] in dpelement[1].stock[]:
-                res.append(Delivery_item(doelement[0], dpelemen[1], doelement[2], doelement[3]))
+                res.append(Delivery_item(doelement[0], doelement[1], doelement[2], doelement[3]))
 
 
 def sort(list, geq):
@@ -142,5 +142,5 @@ def travelling_sales_man(driver_delivery_set):
         closest = find_closest_next_step(drive_order[-1], rem_steps)
         drive_order.append(closest)
         remove(rem_steps, lambda elem: elem == closest)
-        if closest.__class__.__name__ = 'Pharmacy':
+        if closest.__class__.__name__ == 'Pharmacy':
             rem_steps += filter(driver_delivery_set, lambda elem: elem.pharamcy == closest, lambda elem: elem.patient)
