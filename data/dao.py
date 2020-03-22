@@ -195,7 +195,8 @@ def get_all_drivers(cursor):
            'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
            'FROM drivers')
     drivers = []
-    for d in cursor.execute(qry):
+    cursor.execute(qry)
+    for d in cursor.fetchall():
         (id, name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long,
          cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z) = d
         cooler_dim = Dimensions(cooler_dim_x, cooler_dim_y, cooler_dim_z)
@@ -211,7 +212,8 @@ def get_stock_for_pharmacy(cursor, pharmacy_id):
            'FROM pharmacy_stores '
            'WHERE pharmacy_id = ?')
     stock = []
-    for s in cursor.execute(qry, (pharmacy_id,)):
+    cursor.execute(qry, (pharmacy_id,))
+    for s in cursor.fetchall():
         (med_id, amount) = s
         med = get_medication_by_id(cursor, med_id)
         stock.append((med, amount))
@@ -222,8 +224,9 @@ def get_all_pharmacies(cursor):
     qry = ('SELECT id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
            'FROM pharmacies')
     pharmacies = []
-    for p in cursor.execute(qry):
-        print("found one")
+    cursor.execute(qry)
+    for p in cursor.fetchall():
+        print(p)
         (id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long) = p
         addr = Address(addr_plz, addr_street, addr_street_nr)
         coors = Coordinates(koo_lat, koo_long)
@@ -237,22 +240,27 @@ def get_meds_for_order(cursor, order_id):
            'FROM order_contains '
            'where order_id = ?')
     medications = []
-    for p in cursor.execute(qry, (order_id,)):
+    cursor.execute(qry, (order_id,))
+    for p in cursor.fetchall():
         (med_id, amount) = p
         med = get_medication_by_id(cursor, med_id)
         medications.append((med, amount))
     return medications
 
 
-def get_all_orders(cursor):
-    qry = ('SELECT id, given_by from orders')
+def get_all_orders(cursor, for_patient=None):
+    qry = ('SELECT id, given_by, status from orders')
     orders = []
-    for o in cursor.execute(qry):
-        (order_id, pat_id) = o
+    cursor.execute(qry)
+    for o in cursor.fetchall():
+        (order_id, pat_id, status) = o
         patient = get_patient_by_id(cursor, pat_id)
         medications = get_meds_for_order(cursor, order_id)
-        order = Order(order_id, patient, medications)
-        orders.append(order)
+        order = Order(order_id, patient, medications, status)
+        if for_patient and pat_id != for_patient:
+            pass
+        else:
+            orders.append(order)
     return orders
 
 

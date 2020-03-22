@@ -139,7 +139,14 @@ SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if is_logged_in_as_patient():
+        conn = get_db()
+        c = conn.cursor()
+        patient_id = get_patient_id(c, get_username())
+        orders = get_all_orders(c, patient_id)
+        return render_template('orders.html', orders=orders)
+    else:
+        return render_template('index.html')
 
 
 @app.route('/secret')

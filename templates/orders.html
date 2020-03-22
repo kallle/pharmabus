@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Meine Bestellungen{% endblock %}
+
+{% block page_body %}
+<div class="row">
+    <p>
+        Meine Bestellungen:
+    </p>
+</div>
+<div class="row">
+    <ul>
+        {% for order in orders %}
+        <li>{{order.id}} ({{order.status}}):
+            <ul>
+            {% for (med,amount) in order.medications %}
+            <li>{{med.name}} ({{med.supplier}}) - {{amount}}</li>
+            {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
