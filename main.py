@@ -12,7 +12,7 @@ from data.dao import insert_order, get_pharmacy_id, \
     process_stock, get_patient_id, get_all_drivers, get_all_pharmacies, get_all_orders
 from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
 from models.address import Address
-from models.coordinates import get_default_coordinates
+from models.coordinates import get_default_coordinates, Coordinates
 from models.dimensions import get_default_dimensions
 from models.driver import Driver
 from models.patient import Patient
@@ -156,7 +156,9 @@ def register_pharmacy():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
 
         pharmacy = Pharmacy(None, name, addr, coor, None)
         conn = get_db()
@@ -180,7 +182,9 @@ def register_patient():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
 
         patient = Patient(None, name, addr, coor)
         conn = get_db()
@@ -205,7 +209,9 @@ def register_driver():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
         storage = get_default_dimensions()
         cooled_storage = get_default_dimensions()
 
