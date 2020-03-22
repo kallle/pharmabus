@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Upload Stock{% endblock %}
+{% block title %}Bestand aktualisieren{% endblock %}
 
 {% block page_body %}
 <form action="{{ url_for('upload_stock') }}" method="post" enctype="multipart/form-data">
@@ -7,7 +7,7 @@
         <label for="file">Datei</label>
         <input name="file" type="file" id="file" required>
         <br/>
-        <input type=submit value=Upload>
+        <input type=submit value="Bestand aktualisieren">
     </div>
 </form>
 {% endblock %}

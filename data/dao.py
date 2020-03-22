@@ -1,5 +1,6 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from helper import InvalidOrderException
 from models.role import Role, InvalidRoleException
 
 
@@ -83,30 +84,24 @@ def get_medication_by_name_supplier(product_name, supplier, cursor):
            '      supplier = ?')
     cursor.execute(qry, (product_name, supplier))
     med_id = cursor.fetchone()
-    return med_id
-
-
-def get_patient_id_by_username(username, cursor):
-    qry = ('SELECT patient_id '
-           'FROM Users '
-           'WHERE username = ?')
-    cursor.execute(qry, (username))
-    driver_id = cursor.fetchone()
-    return driver_id
+    if not med_id:
+        raise Exception("Medication does not exist!")
+    else:
+        return med_id[0]
 
 
 def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
     qry = ('SELECT id '
            'FROM meds '
            'WHERE pzn = ?')
-    cursor.execute(qry, (pzn))
+    cursor.execute(qry, (pzn,))
     med_id = cursor.fetchone()
     if med_id:
-        return med_id
+        return med_id[0]
     qry = ('INSERT INTO meds('
            'pzn, product_name, ingredient, supplier, quantity, dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe) '
            'VALUES (?,?,?,?,?,?,?,?,?,?)')
-    cursor.execute(qry, (product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
+    cursor.execute(qry, (pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
     return cursor.lastrowid
 
 
@@ -115,16 +110,42 @@ def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, q
     qry = ('INSERT INTO pharmacy_stores('
            'pharmacy_id,med_id,amount) '
            'VALUES (?,?,?) '
-           'ON DUPLICATE KEY UPDATE')
+           'ON CONFLICT(pharmacy_id,med_id) DO UPDATE SET amount = excluded.amount')
     cursor.execute(qry, (pharmacy_id, med_id, amount))
 
 
-def insert_order(patient_id, med_id, amount, recipe_p, cursor):
+def clear_stock(cursor, pharmacy_id):
+    qry = 'DELETE FROM pharmacy_stores where pharmacy_id = ?'
+    cursor.execute(qry, (pharmacy_id,))
+
+
+def process_stock(cursor, pharmacy_id, stock):
+    #clear_stock(cursor, pharmacy_id)
+    for (med, amount) in stock:
+        dim = med.dimensions
+        insert_stock(pharmacy_id, amount,
+                     med.pzn, med.name, med.ingredients, med.supplier, med.quantity,
+                     dim.width, dim.height, dim.depth,
+                     med.requires_cooling, med.requires_recipe,
+                     cursor)
+
+
+def insert_order(cursor, patient_id, meds, recipe_p):
     qry = ('INSERT INTO orders('
            'status, given_by) '
            'VALUES (\'pending\',?)')
-    cursor.execute(qry, (patient))
+    cursor.execute(qry, (patient_id,))
     order_id = cursor.lastrowid
+    for med in meds:
+        handelsname, hersteller, amount = med
+        med_id = get_medication_by_name_supplier(handelsname, hersteller, cursor)
+        if med_id == None:
+            raise InvalidOrderException("The medication does not exist")
+        else:
+            insert_order_item(cursor, order_id, med_id, amount, recipe_p)
+
+
+def insert_order_item(cursor, order_id, med_id, amount, recipe_p):
     qry = ('INSERT INTO order_contains('
            'order_id, med_id, amount, recipe_with_customer) '
            'VALUES(?,?,?,?)')

@@ -8,7 +8,9 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
-from helper import process_uploaded_csv_file
+from data.dao import get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
+    process_stock, get_patient_id
+from helper import process_uploaded_csv_file, read_stock, InvalidOrderException, allowed_file
 from models.address import Address
 from models.coordinates import get_default_coordinates
 from models.dimensions import get_default_dimensions
@@ -17,6 +19,7 @@ from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role
 from flask import current_app, g
+from secrets import compare_digest
 
 
 def get_db():
@@ -37,33 +40,31 @@ def close_db(e=None):
         db.close()
 
 
-def compare_role(username, role):
-    conn = sqlite3.connect(settings.DATABASE_URL)
-    c = conn.cursor()
-    r = dao.get_role(c, username)
-    return r == role
-
-
-def is_patient(username):
-    if compare_role(username, Role.PATIENT):
-        return '', True
-    else:
-        return 'User {:1!l} is not a patient!'.format(username), False
-
-
 def check_my_users(user):
     conn = get_db()
     c = conn.cursor()
     username = user['username']
     password = user['password']
+    if username == settings.OVERLORD_NAME and compare_digest(password, settings.OVERLORD_PWD):
+        return True
     success = dao.check_login(c, username, password)
     return success
 
+
 def compare_role(username, role):
+    if username == settings.OVERLORD_NAME:
+        return Role.OVERLORD
     conn = get_db()
     c = conn.cursor()
     r = dao.get_role(c, username)
     return r == role
+
+
+def is_overlord(username):
+    if username == settings.OVERLORD_NAME:
+        return
+    else:
+        return 'User {:1!l} is not the boss!'.format(username)
 
 
 def is_patient(username):
@@ -87,8 +88,17 @@ def is_pharmacy(username):
         return 'User {:1!l} is not a pharmacy!'.format(username)
 
 
+def is_logged_in_as_overlord():
+    if not is_logged_in():
+        return False
+    username = session.get('simple_username')
+    return username == settings.OVERLORD_NAME
+
+
 def is_logged_in_as_pharmacy():
     if not is_logged_in():
+        return False
+    if is_logged_in_as_overlord():
         return False
     username = session.get('simple_username')
     return compare_role(username, Role.PHARMACY)
@@ -97,23 +107,33 @@ def is_logged_in_as_pharmacy():
 def is_logged_in_as_driver():
     if not is_logged_in():
         return False
+    if is_logged_in_as_overlord():
+        return False
     username = session.get('simple_username')
     return compare_role(username, Role.DRIVER)
-
 
 
 def is_logged_in_as_patient():
     if not is_logged_in():
         return False
+    if is_logged_in_as_overlord():
+        return False
     username = session.get('simple_username')
     return compare_role(username, Role.PATIENT)
 
 
-
 app = Flask(__name__)
 app.config.from_object('settings')
-
-SimpleLogin(app, login_checker=check_my_users)
+messages = {
+    'login_success': 'Login erfolgreich!',
+    'login_failure': 'Ungültiges Passwort oder Account existiert nicht!',
+    'is_logged_in': 'Eingeloggt',
+    'logout': 'Déconnecté!',
+    'login_required': 'Login Vorausgesetzt',
+    'access_denied': 'Zugriff verweigert',
+    'auth_error': 'Authentifizierungsfehler： {0}'
+}
+SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 
 @app.route('/')
@@ -145,6 +165,7 @@ def register_pharmacy():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, pharmacy_id=pharmacy_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_pharmacy.html")
@@ -168,6 +189,7 @@ def register_patient():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, patient_id=patient_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_patient.html")
@@ -194,36 +216,38 @@ def register_driver():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, driver_id=driver_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_driver.html")
 
+
+def not_empty(item):
+    return item != ''
+
 @app.route('/submit_order', methods=['GET', 'POST'])
+@login_required(must=[is_patient])
 def submit_order():
     if flask.request.method == 'POST':
-        handelsname = flask.request.values.get('handelsname')
-        hersteller = flask.request.values.get('hersteller')
-        amount = flask.request.values.get('amount')
+        handelsname = flask.request.form.getlist('handelsname')
+        hersteller = flask.request.form.getlist('hersteller')
+        amount = flask.request.form.getlist('amount')
+        handelsname = filter(not_empty, handelsname)
+        hersteller = filter(not_empty, hersteller)
+        amount = filter(not_empty, amount)
+        order = list(zip(handelsname, hersteller, amount))
         recipe_p = flask.request.values.get('rezept')
         conn = get_db()
         c = conn.cursor()
-        error, userp = is_patient(get_username())
-        if not userp:
-            raise error
-        patient_id = get_patient_id_by_username(get_username(), c)
-        med_id = get_medication_by_name_supplier(handelsname, hersteller)
-        if patient_id == None or med_id == None:
-            raise "You are either not a patient or the medication does not exist"
-        insert_order(patient_id, med_id, amount, recipe_p, cursor)
+        patient_id = get_patient_id(c, get_username())
+        insert_order(c, patient_id, order, recipe_p)
         conn.commit()
+        flash('Bestellung erfolgreich übermittelt')
         return render_template('index.html')
     else:
         return render_template("submit_order.html")
 
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ['csv']
 
 
 @app.route('/upload_stock', methods=['GET', 'POST'])
@@ -232,21 +256,36 @@ def upload_stock():
     if flask.request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            flash('Keine Datei ausgewählt')
             return redirect(request.url)
         file = request.files['file']
         # if user does not select file, browser also
         # submit an empty part without filename
         if file.filename == '':
-            flash('No selected file')
+            flash('Keine Datei ausgewählt')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             data = process_uploaded_csv_file(file.stream)
-            pprint.pprint(data)
+            stock = read_stock(data)
+            conn = get_db()
+            c = conn.cursor()
+            pharmacy_id = get_pharmacy_id(c, get_username())
+            process_stock(c, pharmacy_id, stock)
+            conn.commit()
+            flash('Bestand erfolgreich aktualisiert')
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")
 
+
+@app.route('/calculate_routes', methods=['GET', 'POST'])
+@login_required(must=[is_overlord])
+def calculate_routes():
+    if flask.request.method == 'POST':
+        print("CALCULATE!")
+        return render_template('index.html')
+    else:
+        return render_template("calculate_routes.html")
 
 
 @app.route('/complex')
@@ -266,6 +305,7 @@ app.add_url_rule('/protected', view_func=ProtectedView.as_view('protected'))
 app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)
+app.add_template_global(is_logged_in_as_overlord)
 app.teardown_appcontext(close_db)
 if __name__ == '__main__':
     app.run(port=5000, use_reloader=True, debug=True)
