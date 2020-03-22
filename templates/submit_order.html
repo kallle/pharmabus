@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Submit Order{% endblock %}
+
+
+{% block page_body %}
+<form action="{{ url_for('submit_order') }}" method="post">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input name="name" id="name" required>
+        <br/>
+        <label for="Handelsname">Name</label>
+        <input name="handelsname" id="handelsname" required>
+        <br />
+        <label for="Handelsname">Name</label>
+        <input name="handelsname" id="handelsname" required>
+        <br />
+        <input type="submit" value="Register">
+<input type="submit" value="Send">
+</form>
+{% endblock}
