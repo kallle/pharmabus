@@ -204,7 +204,7 @@ def travelling_sales_man(driver_delivery_set):
     sort(driver_delivery_set, lambda a,b : pharmacy_count[a.pharmacy] >= pharmacy_count[b.pharmacy])
     start = driver_delivery_set[0]
     drive_order = list()
-    drive_order.append(Stop("einladen", start.pharmacy, [Post(start.med, start.amount)]))
+    drive_order += filter(driver_delivery_set, lambda elem: elem.pharmacy == start.pharmacy, lambda elem: Stop("einladen", elem.pharmacy, [Post(elem.med, elem.amount)]))
     # give me the steps with the patients
     rem_steps = filter(driver_delivery_set, lambda elem: elem.pharmacy == start.pharmacy, lambda elem: Stop("ausladen",elem.patient, [Post(elem.med, elem.amount)]))
     # give me the remaining pharmacies

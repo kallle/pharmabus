@@ -10,3 +10,7 @@ class Post:
     @property
     def amount(self):
         return self._amount
+
+    def __eq__(self, other):
+        return (self.medication == other.medication and
+                self.amount == other.amount)
