@@ -156,4 +156,3 @@ def get_driver_id(cursor, username):
         return driver_id
     else:
         raise InvalidRoleException('{:1!l} is missing his driver id'.format(username))
->>>>>>> Added v1 of csv upload
