@@ -30,3 +30,6 @@ def read_stock(data):
         amount = row[9]
         stock.append((med, amount))
     return stock
+
+class InvalidOrderException(Exception):
+    pass
