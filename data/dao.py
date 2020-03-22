@@ -83,7 +83,10 @@ def get_medication_by_name_supplier(product_name, supplier, cursor):
            '      supplier = ?')
     cursor.execute(qry, (product_name, supplier))
     med_id = cursor.fetchone()
-    return med_id[0]
+    if not med_id:
+        raise Exception("Medication does not exist!")
+    else:
+        return med_id[0]
 
 
 def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):

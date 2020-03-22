@@ -222,7 +222,7 @@ def submit_order():
         conn = get_db()
         c = conn.cursor()
         patient_id = get_patient_id(c, get_username())
-        med_id = get_medication_by_name_supplier(handelsname, hersteller)
+        med_id = get_medication_by_name_supplier(handelsname, hersteller, c)
         if patient_id == None or med_id == None:
             raise InvalidOrderException("You are either not a patient or the medication does not exist")
         insert_order(patient_id, med_id, amount, recipe_p, c)
