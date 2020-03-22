@@ -28,3 +28,9 @@ class Patient:
                 'address={self._address!r}, '
                 'coordinates={self._coordinates!r})'
                 ).format(self=self)
+
+    def __eq__(self, other):
+        return self.id() == other.id()
+
+    def geq(self, other):
+        return self.coordinates() >= other.coordinates()

@@ -23,7 +23,11 @@ class Delivery_item:
 
 
 def sort(list, geq):
-    return list
+    n = len(list)
+    for x in range(n):
+        for y in range(0,n-x-1):
+            if geq(list[y], list[y+1]):
+                list[y], list[y+1] = list[y+1], list[y]
 
 
 def remove(list, probe):
@@ -46,7 +50,7 @@ def filter(list, probe, key=lambda a: a):
 
 
 def delivery_set_reducer(possible_delivery_set):
-    sort(possible_delivery_set, compare)
+    sort(possible_delivery_set, lambda a,b : a.geq(b))
     drives = list()
     while len(possible_delivery_set) > 0:
         current = possible_delivery_set[0]
@@ -87,6 +91,10 @@ def find_closest_next_step(start_step, possible_next_steps):
         if start_step.distance(step) < closest:
             closest = step
     return closest
+
+
+def distance(a, b):
+    return a.coordinates().bird_distance(b.coordinates())
 
 
 def travelling_sales_man(driver_delivery_set):

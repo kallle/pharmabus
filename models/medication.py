@@ -40,3 +40,9 @@ class Medication:
                 'quantity={self._quantity!r}, '
                 'ingredients={self._ingredients!r}, '
                 ).format(self=self)
+
+    def __eq__(self, other):
+        return self.pzn() == other.pzn()
+
+    def geq(self, other):
+        return self.pzn() >= other.pzn()

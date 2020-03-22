@@ -49,4 +49,10 @@ class Driver:
     def with_id(self, id):
         return Driver(id, self._name, self._range, self._address, self._coordinates, self._cooler_dimensions, self._storage_dimensions)
 
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def geq(self, other):
+        return self.volume() >= other.volume()
+
 
