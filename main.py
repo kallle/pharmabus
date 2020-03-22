@@ -38,20 +38,6 @@ def close_db(e=None):
         db.close()
 
 
-def compare_role(username, role):
-    conn = sqlite3.connect(settings.DATABASE_URL)
-    c = conn.cursor()
-    r = dao.get_role(c, username)
-    return r == role
-
-
-def is_patient(username):
-    if compare_role(username, Role.PATIENT):
-        return '', True
-    else:
-        return 'User {:1!l} is not a patient!'.format(username), False
-
-
 def check_my_users(user):
     conn = get_db()
     c = conn.cursor()
@@ -59,6 +45,7 @@ def check_my_users(user):
     password = user['password']
     success = dao.check_login(c, username, password)
     return success
+
 
 def compare_role(username, role):
     conn = get_db()
@@ -102,13 +89,11 @@ def is_logged_in_as_driver():
     return compare_role(username, Role.DRIVER)
 
 
-
 def is_logged_in_as_patient():
     if not is_logged_in():
         return False
     username = session.get('simple_username')
     return compare_role(username, Role.PATIENT)
-
 
 
 app = Flask(__name__)
@@ -249,7 +234,6 @@ def upload_stock():
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")
-
 
 
 @app.route('/complex')
