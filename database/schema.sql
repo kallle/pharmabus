@@ -52,12 +52,12 @@ CREATE TABLE meds (
        pzn          text,
        product_name text,
        ingredient   text,
-	   supplier		text,
+       supplier		text,
        quantity     text,
        dimension_x  integer,
        dimension_y  integer,
        dimension_z  integer,
-       requries_cooling integer,
+       requires_cooling integer,
        requires_recipe integer
 );
 
@@ -106,7 +106,6 @@ CREATE TABLE Users (
        id          integer primary key,
        username    text,
        pwd         text,
-       salt        text,
        driver_id   integer,
        pharmacy_id integer,
        patient_id  integer

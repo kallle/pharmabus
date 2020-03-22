@@ -13,6 +13,7 @@ def process_uploaded_csv_file(stream):
             data.append(row)
     return data
 
+
 def read_stock(data):
     stock = []
     for row in data:
@@ -26,10 +27,13 @@ def read_stock(data):
         requires_cooling = row[7]
         requires_recipe = row[8]
         dimensions = Dimensions(width, height, depth)
-        med = Medication(pzn, name, dimensions, requires_cooling, quantity, ingredients, requires_recipe)
-        amount = row[9]
+        supplier = row[9]
+        med = Medication(pzn, name, supplier, dimensions, requires_cooling, quantity, ingredients, requires_recipe)
+
+        amount = row[10]
         stock.append((med, amount))
     return stock
+
 
 class InvalidOrderException(Exception):
     pass

@@ -1,8 +1,9 @@
 # TODO: keep list of synonyms in here?
 class Medication:
-    def __init__(self, pzn, name, dimensions, requires_cooling, quantity, ingredients, requires_recipe):
+    def __init__(self, pzn, name, supplier, dimensions, requires_cooling, quantity, ingredients, requires_recipe):
         self._pzn = pzn
         self._name = name
+        self._supplier = supplier
         self._dimensions = dimensions
         self._requires_cooling = requires_cooling
         self._quantity = quantity
@@ -16,6 +17,10 @@ class Medication:
     @property
     def name(self):
         return self._name
+
+    @property
+    def supplier(self):
+        return self._supplier
 
     @property
     def dimensions(self):
@@ -44,6 +49,7 @@ class Medication:
                 'requires_cooling={self._requires_cooling!r}, '
                 'requires_recipe={self._requires_recipe!r}, '
                 'quantity={self._quantity!r}, '
+                'supplier={self._supplier!r}, '
                 'ingredients={self._ingredients!r}, '
                 ).format(self=self)
 

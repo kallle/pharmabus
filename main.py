@@ -8,7 +8,8 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
-from data.dao import get_patient_id_by_username, get_medication_by_name_supplier, insert_order
+from data.dao import get_patient_id_by_username, get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
+    process_stock
 from helper import process_uploaded_csv_file, read_stock, InvalidOrderException
 from models.address import Address
 from models.coordinates import get_default_coordinates
@@ -230,6 +231,11 @@ def upload_stock():
         if file and allowed_file(file.filename):
             data = process_uploaded_csv_file(file.stream)
             stock = read_stock(data)
+            conn = get_db()
+            c = conn.cursor()
+            pharmacy_id = get_pharmacy_id(c, get_username())
+            process_stock(c, pharmacy_id, stock)
+            conn.commit()
             pprint.pprint(stock)
         return render_template('index.html')
     else:

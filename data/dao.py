@@ -90,7 +90,7 @@ def get_patient_id_by_username(username, cursor):
     qry = ('SELECT patient_id '
            'FROM Users '
            'WHERE username = ?')
-    cursor.execute(qry, (username))
+    cursor.execute(qry, (username,))
     driver_id = cursor.fetchone()
     return driver_id
 
@@ -99,14 +99,14 @@ def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z
     qry = ('SELECT id '
            'FROM meds '
            'WHERE pzn = ?')
-    cursor.execute(qry, (pzn))
+    cursor.execute(qry, (pzn,))
     med_id = cursor.fetchone()
     if med_id:
         return med_id
     qry = ('INSERT INTO meds('
            'pzn, product_name, ingredient, supplier, quantity, dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe) '
            'VALUES (?,?,?,?,?,?,?,?,?,?)')
-    cursor.execute(qry, (product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
+    cursor.execute(qry, (pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
     return cursor.lastrowid
 
 
@@ -122,6 +122,17 @@ def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, q
 def clear_stock(cursor, pharmacy_id):
     qry = 'DELETE FROM pharmacy_stores where pharmacy_id = ?'
     cursor.execute(qry, (pharmacy_id,))
+
+
+def process_stock(cursor, pharmacy_id, stock):
+    clear_stock(cursor, pharmacy_id)
+    for (med, amount) in stock:
+        dim = med.dimensions
+        insert_stock(pharmacy_id, amount,
+                     med.pzn, med.name, med.ingredients, med.supplier, med.quantity,
+                     dim.width, dim.height, dim.depth,
+                     med.requires_cooling, med.requires_recipe,
+                     cursor)
 
 
 def insert_order(patient_id, med_id, amount, recipe_p, cursor):
