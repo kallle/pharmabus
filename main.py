@@ -199,6 +199,7 @@ def register_driver():
         return render_template("register_driver.html")
 
 @app.route('/submit_order', methods=['GET', 'POST'])
+@login_required(must=[is_patient])
 def submit_order():
     if flask.request.method == 'POST':
         handelsname = flask.request.values.get('handelsname')

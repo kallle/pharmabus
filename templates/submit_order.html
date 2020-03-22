@@ -5,16 +5,16 @@
 {% block page_body %}
 <form action="{{ url_for('submit_order') }}" method="post">
     <div class="form-group">
-        <label for="Handelsname">Name</label>
+        <label for="handelsname">Handelsname</label>
         <input name="handelsname" id="handelsname" required>
         <br />
-        <label for="Hersteller">Name</label>
+        <label for="hersteller">Hersteller</label>
         <input name="hersteller" id="hersteller" required>
         <br />
-        <label for="Rezept liegt lokal vor">Name</label>
+        <label for="rezept">Rezept liegt lokal vor</label>
         <input type="checkbox" name="rezept" id="rezept" required>
         <br />
         <input type="submit" value="Register">
 <input type="submit" value="Send">
 </form>
-{% endblock}
+{% endblock %}
