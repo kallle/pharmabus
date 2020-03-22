@@ -1,5 +1,6 @@
-import models.driver
-
+from models.stop import Stop
+from models.route import Route
+from models.post import Post
 
 class Delivery_item:
 
@@ -189,27 +190,30 @@ def generate_pharmacy_count_table(driver_delivery_set):
 
 def find_closest_next_step(start_step, possible_next_steps):
     closest_element = possible_next_steps[0]
-    closest_distance = start_step.coordinates.distance(possible_next_steps[0].coordinates)
+    closest_distance = start_step.where.coordinates.distance(possible_next_steps[0].where.coordinates)
     for step in possible_next_steps[1:]:
-        if start_step.coordinates.distance(step.coordinates) < closest_distance:
-            closest_distance = start_step.coordinates.distance(step.coordinates)
+        if start_step.where.coordinates.distance(step.where.coordinates) < closest_distance:
+            closest_distance = start_step.where.coordinates.distance(step.where.coordinates)
             closest_element = step
     return closest_element
 
 
 def travelling_sales_man(driver_delivery_set):
-    drive_order = list()
+    driver = driver_delivery_set[0].driver
     pharmacy_count = generate_pharmacy_count_table(driver_delivery_set)
     sort(driver_delivery_set, lambda a,b : pharmacy_count[a.pharmacy] >= pharmacy_count[b.pharmacy])
-    start_pharmacy = driver_delivery_set[0].pharmacy
-    drive_order.append(start_pharmacy)
-    rem_steps = filter(driver_delivery_set, lambda elem: elem.pharmacy == start_pharmacy, lambda elem: elem.patient)
-    rem_pharmacies = list(dict.fromkeys(filter(driver_delivery_set, lambda elem: elem.pharmacy != start_pharmacy, lambda elem: elem.pharmacy)))
+    start = driver_delivery_set[0]
+    drive_order = list()
+    drive_order.append(Stop("einladen", start.pharmacy, Post(start.med, start.amount)))
+    # give me the steps with the patients
+    rem_steps = filter(driver_delivery_set, lambda elem: elem.pharmacy == start.pharmacy, lambda elem: Stop("ausladen",elem.patient, Post(elem.med, elem.amount)))
+    # give me the remaining pharmacies
+    rem_pharmacies = filter(driver_delivery_set, lambda elem: elem.pharmacy != start.pharmacy, lambda elem: Stop("einladen", elem.pharmacy, Post(elem.med, elem.amount)))
     rem_steps += rem_pharmacies
     while len(rem_steps) > 0:
         closest = find_closest_next_step(drive_order[-1], rem_steps)
         drive_order.append(closest)
         remove(rem_steps, lambda elem: elem == closest)
-        if closest.__class__.__name__ == 'Pharmacy':
-            rem_steps += filter(driver_delivery_set, lambda elem: elem.pharamcy == closest, lambda elem: elem.patient)
-    return drive_order
+        if closest.kind == 'einladen':
+            rem_steps += filter(driver_delivery_set, lambda elem: elem.pharamcy == closest, lambda elem: Stop("ausladen",elem.patient, Post(elem.med, elem.amount)))
+    return Route(driver, drive_order)
