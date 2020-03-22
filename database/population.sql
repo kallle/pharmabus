@@ -51,10 +51,10 @@ INSERT INTO pharmacies VALUES
 
 
 INSERT INTO orders VALUES
-(1, 'pending', 1)
-(2, 'pending', 2)
-(3, 'pending', 3)
-(4, 'pending', 4);
+(1, 'pending', 1, NULL),
+(2, 'pending', 2, NULL),
+(3, 'pending', 3, NULL),
+(4, 'pending', 4, NULL);
 
 
 INSERT INTO order_contains VALUES
