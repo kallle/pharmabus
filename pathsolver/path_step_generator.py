@@ -22,6 +22,40 @@ class Delivery_item:
             False
 
 
+def distance(a, b):
+    return a.coordinates().bird_distance(b.coordinates())
+
+
+# this is horribly inefficient as O(|drivers| x |pharmacies|)
+# is potentially hughe and the set can be precomputed!
+def generate_possible_driver_pharmacy_set(drivers, pharmacies):
+    res = list()
+    for driver in drivers:
+        for pharmacy in pharmacies:
+            if distance(driver, pharmacy) < driver.range:
+                res.append([driver, pharmacy])
+    return res
+
+
+def generate_possible_driver_order_set(drivers, orders):
+    res = list()
+    for driver in drivers:
+        for order in orders:
+            if distance(driver, order.patient) < driver.range:
+                res.append([driver, order.patient, order.medication])
+    return res
+
+
+def generate_delivery_item_base_set(drivers, pharmacies, orders):
+    res = list()
+    driver_pharmacy_set = generate_possible_driver_pharmacy_set(drivers, pharmacies)
+    driver_order_set = generate_possible_driver_order_set(drivers, orders)
+    for doelement in driver_order_set:
+        for dpelement in driver_pharmacy_set:
+            if doelement[2] in dpelement[1].stock[]:
+                res.append(Delivery_item(doelement[0], dpelemen[1], doelement[2], doelement[3]))
+
+
 def sort(list, geq):
     n = len(list)
     for x in range(n):
@@ -91,10 +125,6 @@ def find_closest_next_step(start_step, possible_next_steps):
         if start_step.distance(step) < closest:
             closest = step
     return closest
-
-
-def distance(a, b):
-    return a.coordinates().bird_distance(b.coordinates())
 
 
 def travelling_sales_man(driver_delivery_set):
