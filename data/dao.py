@@ -119,11 +119,16 @@ def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, q
     cursor.execute(qry, (pharmacy_id, med_id, amount))
 
 
+def clear_stock(cursor, pharmacy_id):
+    qry = 'DELETE FROM pharmacy_stores where pharmacy_id = ?'
+    cursor.execute(qry, (pharmacy_id,))
+
+
 def insert_order(patient_id, med_id, amount, recipe_p, cursor):
     qry = ('INSERT INTO orders('
            'status, given_by) '
            'VALUES (\'pending\',?)')
-    cursor.execute(qry, (patient))
+    cursor.execute(qry, (patient_id,))
     order_id = cursor.lastrowid
     qry = ('INSERT INTO order_contains('
            'order_id, med_id, amount, recipe_with_customer) '
