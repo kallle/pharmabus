@@ -177,3 +177,9 @@ def get_driver_id(cursor, username):
         return driver_id
     else:
         raise InvalidRoleException('{:1!l} is missing his driver id'.format(username))
+
+
+def get_all_drivers(cursor):
+    qry = ('SELECT id, name, range, koo_lat, koo_long '
+           'FROM drivers')
+    cursor.execute(qry)

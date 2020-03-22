@@ -278,6 +278,17 @@ def upload_stock():
         return render_template("upload_stock.html")
 
 
+def start_calculation():
+    print("MAGIC IS HAPPENING NOW")
+    drivers = get_all_drivers(conn.cursor())
+    pharmacies = get_all_pharmacies(conn.cursor())
+    orders = get_all_orders(conn.cursor())
+    driver_based_delivery_sets = delivery_set_splitter(delivery_set_reducer(generate_delivery_item_base_set(drivers, pharmacies, orders)))
+    for delivery_set in driver_based_delivery_sets:
+        print("for driver " + delivery_set[0].driver)
+        print(travelling_sales_man(delivery_set))
+
+
 @app.route('/calculate_routes', methods=['GET', 'POST'])
 @login_required(must=[is_overlord])
 def calculate_routes():
