@@ -14,7 +14,11 @@ INSERT INTO users VALUES
 (13, 'A7', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 7 , NULL),
 (14, 'A8', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 8 , NULL),
 (15, 'A9', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 9 , NULL),
-(16, 'A10', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 10, NULL);
+(16, 'A10', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 10, NULL),
+(17, 'P1', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, NULL, 1),
+(18, 'P2', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, NULL, 2),
+(19, 'P3', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, NULL, 3),
+(20, 'P4', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, NULL, 4);
 
 
 INSERT INTO drivers VALUES
@@ -26,17 +30,24 @@ INSERT INTO drivers VALUES
 (6, 'Goliat Gross'   ,  30, 80331, 'Waldstr.'     , 18, 48.1148483, 11.4786645, 10, 15, 20, 10, 20, 30);
 
 
+INSERT INTO patients VALUES
+(1, 'Charles', 14057, 'Kurfuerstendamm', 111, 52.458, 13.1023),
+(2, 'Dickens', 14057, 'Tristanstr.'    , 11, 52.511, 13.11),
+(3, 'Edgar'  , 14057, 'Waldstr.'       , 11, 48.1148, 11.47866),
+(4, 'Ellen'  , 14057, 'Luisenstr.'     , 7, 52.255, 10.50934);
+
+
 INSERT INTO pharmacies VALUES
-(1, 'Hagenmarkt Apotheke', 38100, 'Hagenmarkt'   , 19, 52.267770, 10.524170),
-(2, 'Arkaden-Apotheke'   , 38100, 'Ritterbrunnen', 1 , 52.265090, 10.528030),
-(3, 'Sofien-Apotheke', 38118, 'Sophienstraße', 28, 52.258260, 10.506750),
-(4, 'APONEO öffentliche Apotheke', 10365 , 'Frankfurter Allee', 241, 52.512040, 13.496970),
-(5, 'Meraner Apotheke', 10825, 'Meraner Str.', 16, 52.4866223, 13.3386726),
-(6, 'Suarez Apotheke', 14057, 'Suarezstraße', 64, 52.5074305, 13.2950865),
-(7, 'MediosApotheke Oranienburger Tor', 10117, 'Friedrichstraße', 113, 52.5260999, 13.3876281),
-(8, 'Rats Apotheke Gauting', 82131, 'Bahnhofstraße', 2, 48.0669554, 11.3798203),
-(9, 'Marys pharmacy Grosshadern', 81377, 'Heiglhofstraße', 4, 48.1148493, 11.4786665),
-(10, 'Rosen Apotheke', 80331, 'Rosenstraße', 6, 48.1364717, 11.5738671);
+(1, 'Hagenmarkt Apotheke'              , 38100, 'Hagenmarkt'        , 19, 52.267770, 10.524170),
+(2, 'Arkaden-Apotheke'                 , 38100, 'Ritterbrunnen'     , 1 , 52.265090, 10.528030),
+(3, 'Sofien-Apotheke'                  , 38118, 'Sophienstraße'     , 28, 52.258260, 10.506750),
+(4, 'APONEO öffentliche Apotheke'      , 10365, 'Frankfurter Allee' , 241, 52.512040, 13.496970),
+(5, 'Meraner Apotheke'                 , 10825, 'Meraner Str.'      , 16, 52.4866223, 13.3386726),
+(6, 'Suarez Apotheke'                  , 14057, 'Suarezstraße'      , 64, 52.5074305, 13.2950865),
+(7, 'MediosApotheke Oranienburger Tor' , 10117, 'Friedrichstraße'   , 113, 52.5260999, 13.3876281),
+(8, 'Rats Apotheke Gauting'            , 82131, 'Bahnhofstraße'     , 2, 48.0669554, 11.3798203),
+(9, 'Marys pharmacy Grosshadern'       , 81377, 'Heiglhofstraße'    , 4, 48.1148493, 11.4786665),
+(10, 'Rosen Apotheke'                  , 80331, 'Rosenstraße'       , 6, 48.1364717, 11.5738671);
 
 
 INSERT INTO meds VALUES
