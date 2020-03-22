@@ -124,8 +124,16 @@ def is_logged_in_as_patient():
 
 app = Flask(__name__)
 app.config.from_object('settings')
-
-SimpleLogin(app, login_checker=check_my_users)
+messages = {
+    'login_success': 'Login erfolgreich!',
+    'login_failure': 'Ungültiges Passwort oder Account existiert nicht!',
+    'is_logged_in': 'Eingeloggt',
+    'logout': 'Déconnecté!',
+    'login_required': 'Login Vorausgesetzt',
+    'access_denied': 'Zugriff verweigert',
+    'auth_error': 'Authentifizierungsfehler： {0}'
+}
+SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 
 @app.route('/')
