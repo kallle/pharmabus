@@ -12,7 +12,7 @@
 <body>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-<a class="navbar-brand" href="#">My Site</a>
+<a class="navbar-brand" href="#">PharmaBus</a>
 {% block nav %}
 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -24,15 +24,17 @@
           <li class="nav-item active">
             <a class="nav-link" href="/">Home</a>
           </li>
-
-          <li class="nav-item">
-                <a class="nav-link" href="{{url_for('secret')}}">Secret</a>
-          </li>
-
-          <li class="nav-item">
-                <a class="nav-link" href="{{url_for('complexview')}}">Validated</a>
-          </li>
-
+            {% if not is_logged_in() %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('register_driver')}}">Register Driver</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('register_patient')}}">Register Patient</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('register_pharmacy')}}">Register Pharmacy</a>
+            </li>
+            {% endif %}
           <li class="nav-item">
             {% if is_logged_in() %}
                 <span class="nav-link">{{ get_username() }}

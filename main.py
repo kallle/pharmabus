@@ -1,7 +1,7 @@
 import sqlite3
 
 import flask
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, session
 from flask.views import MethodView
 from flask_simplelogin import SimpleLogin, get_username, login_required
 
@@ -71,15 +71,15 @@ def register_pharmacy():
         addr = Address(postal_code, street, number)
         coor = get_default_coordinates()
 
-        pharmacy = Pharmacy(None, name, addr, coor)
+        pharmacy = Pharmacy(None, name, addr, coor, None)
         conn = get_db()
         c = conn.cursor()
-        pharmacy_id = dao.register_driver(c, pharmacy)
+        pharmacy_id = dao.register_pharmacy(c, pharmacy)
         username = flask.request.values.get('username')
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, pharmacy_id=pharmacy_id)
         conn.commit()
-        return render_template('index.html')
+        return render_template('simplelogin.login')
     else:
         return render_template("register_pharmacy.html")
 
@@ -97,14 +97,14 @@ def register_patient():
         patient = Patient(None, name, addr, coor)
         conn = get_db()
         c = conn.cursor()
-        patient_id = dao.register_driver(c, patient)
+        patient_id = dao.register_patient(c, patient)
         username = flask.request.values.get('username')
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, patient_id=patient_id)
         conn.commit()
         return render_template('index.html')
     else:
-        return render_template("register_driver.html")
+        return render_template("register_patient.html")
 
 
 @app.route('/register_driver', methods=['GET', 'POST'])
@@ -161,6 +161,19 @@ def is_pharmacy(username):
         return 'User {:1!l} is not a pharmacy!'.format(username)
 
 
+def is_logged_in_as_pharmacy():
+    username = session.get('simple_username')
+    return is_pharmacy(username)
+
+
+def is_logged_in_as_driver():
+    username = session.get('simple_username')
+    return is_driver(username)
+
+
+def is_logged_in_as_patient():
+    username = session.get('simple_username')
+    return is_patient(username)
 
 @app.route('/complex')
 @login_required(must=[is_driver])
@@ -176,6 +189,9 @@ class ProtectedView(MethodView):
 
 
 app.add_url_rule('/protected', view_func=ProtectedView.as_view('protected'))
+app.add_template_global(is_logged_in_as_pharmacy)
+app.add_template_global(is_logged_in_as_driver)
+app.add_template_global(is_logged_in_as_patient)
 app.teardown_appcontext(close_db)
 if __name__ == '__main__':
     app.run(port=5000, use_reloader=True, debug=True)
