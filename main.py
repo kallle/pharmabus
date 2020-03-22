@@ -128,7 +128,7 @@ messages = {
     'login_success': 'Login erfolgreich!',
     'login_failure': 'Ungültiges Passwort oder Account existiert nicht!',
     'is_logged_in': 'Eingeloggt',
-    'logout': 'Déconnecté!',
+    'logout': 'Ausgeloggt!',
     'login_required': 'Login Vorausgesetzt',
     'access_denied': 'Zugriff verweigert',
     'auth_error': 'Authentifizierungsfehler： {0}'
@@ -283,7 +283,7 @@ def upload_stock():
 def calculate_routes():
     if flask.request.method == 'POST':
         print("CALCULATE!")
-        return render_template('index.html')
+        return render_template('routes.html')
     else:
         return render_template("calculate_routes.html")
 
