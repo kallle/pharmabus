@@ -69,7 +69,7 @@ def is_overlord(username):
 
 def is_patient(username):
     if compare_role(username, Role.PATIENT):
-        return ''
+        return
     else:
         return 'User {:1!l} is not a patient!'.format(username)
 
