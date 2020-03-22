@@ -1,9 +1,9 @@
 import sqlite3
 
 import flask
-from flask import Flask, jsonify, render_template, session
+from flask import Flask, jsonify, render_template, session, request, flash, redirect
 from flask.views import MethodView
-from flask_simplelogin import SimpleLogin, get_username, login_required
+from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
 from data import dao
@@ -35,7 +35,6 @@ def close_db(e=None):
         db.close()
 
 
-
 def check_my_users(user):
     conn = get_db()
     c = conn.cursor()
@@ -43,6 +42,57 @@ def check_my_users(user):
     password = user['password']
     success = dao.check_login(c, username, password)
     return success
+
+def compare_role(username, role):
+    conn = get_db()
+    c = conn.cursor()
+    r = dao.get_role(c, username)
+    return r == role
+
+
+def is_patient(username):
+    if compare_role(username, Role.PATIENT):
+        return
+    else:
+        return 'User {:1!l} is not a patient!'.format(username)
+
+
+def is_driver(username):
+    if compare_role(username, Role.DRIVER):
+        return
+    else:
+        return 'User {:1!l} is not a driver!'.format(username)
+
+
+def is_pharmacy(username):
+    if compare_role(username, Role.PHARMACY):
+        return
+    else:
+        return 'User {:1!l} is not a pharmacy!'.format(username)
+
+
+def is_logged_in_as_pharmacy():
+    if not is_logged_in():
+        return False
+    username = session.get('simple_username')
+    return compare_role(username, Role.PHARMACY)
+
+
+def is_logged_in_as_driver():
+    if not is_logged_in():
+        return False
+    username = session.get('simple_username')
+    return compare_role(username, Role.DRIVER)
+
+
+
+def is_logged_in_as_patient():
+    if not is_logged_in():
+        return False
+    username = session.get('simple_username')
+    return compare_role(username, Role.PATIENT)
+
+
 
 app = Flask(__name__)
 app.config.from_object('settings')
@@ -79,7 +129,7 @@ def register_pharmacy():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, pharmacy_id=pharmacy_id)
         conn.commit()
-        return render_template('simplelogin.login')
+        return render_template('index.html')
     else:
         return render_template("register_pharmacy.html")
 
@@ -132,9 +182,8 @@ def register_driver():
     else:
         return render_template("register_driver.html")
 
-
 @app.route('/submit_order', methods=['GET', 'POST'])
-def register_pharmacy():
+def submit_order():
     if flask.request.method == 'POST':
         handelsname = flask.request.values.get('handelsname')
         hersteller = flask.request.values.get('hersteller')
@@ -167,33 +216,33 @@ def is_patient(username):
         return 'User {:1!l} is not a patient!'.format(username)
 
 
-def is_driver(username):
-    if compare_role(username, Role.DRIVER):
-        return
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ['csv']
+
+
+@app.route('/upload_stock', methods=['GET', 'POST'])
+@login_required(must=[is_pharmacy])
+def upload_stock():
+    if flask.request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            content = file.read()
+            print(content)
+        return render_template('index.html')
     else:
-        return 'User {:1!l} is not a driver!'.format(username)
+        return render_template("upload_stock.html")
 
 
-def is_pharmacy(username):
-    if compare_role(username, Role.PHARMACY):
-        return
-    else:
-        return 'User {:1!l} is not a pharmacy!'.format(username)
-
-
-def is_logged_in_as_pharmacy():
-    username = session.get('simple_username')
-    return is_pharmacy(username)
-
-
-def is_logged_in_as_driver():
-    username = session.get('simple_username')
-    return is_driver(username)
-
-
-def is_logged_in_as_patient():
-    username = session.get('simple_username')
-    return is_patient(username)
 
 @app.route('/complex')
 @login_required(must=[is_driver])
