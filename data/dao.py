@@ -115,7 +115,7 @@ def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, q
     qry = ('INSERT INTO pharmacy_stores('
            'pharmacy_id,med_id,amount) '
            'VALUES (?,?,?) '
-           'ON DUPLICATE KEY UPDATE')
+           'ON CONFLICT(pharmacy_id,med_id) DO UPDATE SET amount = excluded.amount')
     cursor.execute(qry, (pharmacy_id, med_id, amount))
 
 

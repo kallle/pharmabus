@@ -1,5 +1,5 @@
-1234,Rotkäppchen,Sekt (Trocken),750ml,30,20,20,1,0,5
-2234,Mumm,Sekt (Trocken),750ml,30,20,20,1,0,5
-3234,Beluga Transatlantik,Wodka,500ml,20,10,10,1,1,2
-4234,Billy Boys,Kondome,30 Stk,15,5,10,0,1,4
-5234,Aspirin,Acetylsalicylsäure,20 Stk,5,5,5,0,0,3
+1234,Rotkäppchen,Sekt (Trocken),750ml,30,20,20,1,0,Rotkäppchen,7
+2234,Mumm,Sekt (Trocken),750ml,30,20,20,1,0,Mumm,5
+3234,Beluga Transatlantik,Wodka,500ml,20,10,10,1,1,Beluga,2
+4234,Billy Boys,Kondome,30 Stk,15,5,10,0,1,Billy Boy,4
+5234,Aspirin,Acetylsalicylsäure,20 Stk,5,5,5,0,0,Bayer,3
