@@ -21,3 +21,10 @@ class Dimensions:
                 'height={self._height!r}, '
                 'depth={self._depth!r})'
                 ).format(self=self)
+
+    def volume(self):
+        return self.width() * self.height() * self.depth()
+
+
+def get_default_dimensions():
+    return Dimensions(0, 0, 0)

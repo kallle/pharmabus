@@ -21,3 +21,4 @@ class Order:
                 'patient={self._patient!r}, '
                 'medications={self._medications!r}, '
                 ).format(self=self)
+
