@@ -21,7 +21,8 @@ pip install -r requirements.txt
 
 ## Run
 
-Das folgende Skript erstellt die sqlite Datenbank und startet das Programm. ACHTUNG: Dies überschreibt alle Daten in der Datenbank.
+Das folgende Skript erstellt die sqlite Datenbank und startet das Programm.
+ACHTUNG: Dies überschreibt alle Daten in der Datenbank!
 
 ```
 bash run.sh
@@ -42,7 +43,7 @@ Pharmacies and drivers are able to register with our Website.
 
 Drivers can state where they live and their range of distribution as well as the size of their trunk.
 
-Users can sign an up and upload a order of medication. The backend will then schedule based on pharmacy inventory and driver availability drivers who pick up medication and distribute it appropriately.
+Users can sign up and upload a order of medication. The backend will then schedule based on pharmacy inventory and driver availability drivers who pick up medication and distribute it appropriately.
 
 ### Out of Scope
 - Data protection foo
