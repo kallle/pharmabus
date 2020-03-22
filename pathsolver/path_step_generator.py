@@ -19,7 +19,7 @@ class Delivery_item:
         elif self.med.geq(delivery_item.med):
             return True
         else:
-            False
+            return False
 
 
 # calculate distances based on bird distance calculation provided

@@ -1,18 +1,15 @@
 import codecs
 import csv
 
-from data.dao import get_driver_by_id, get_pharmacy_by_id, get_patient_by_id, get_medication_by_name_supplier, get_med
-from models.address import Address
-from models.coordinates import get_default_coordinates
-from models.dimensions import Dimensions, get_default_dimensions
-from models.driver import Driver
+from data.dao import get_driver_by_id, get_pharmacy_by_id, get_patient_by_id, get_med
+from models.dimensions import Dimensions
 from models.medication import Medication
-from models.pharmacy import Pharmacy
 from models.post import Post
 from models.route import Route
 from models.stop import Stop
 
 
+# Reads a uploaded csv file and makes a list from it
 def process_uploaded_csv_file(stream):
     data = []
     stream = codecs.iterdecode(stream, 'utf-8')
@@ -22,6 +19,7 @@ def process_uploaded_csv_file(stream):
     return data
 
 
+# Parse a stock rows from a csv list
 def read_stock(data):
     stock = []
     for row in data:
@@ -43,11 +41,13 @@ def read_stock(data):
     return stock
 
 
+# Allowed file types one can upload
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ['csv']
 
 
+# Generates a static route to test the rendering
 def make_fake_route(cursor):
     driver1 = get_driver_by_id(cursor, 3)
     apo1 = get_pharmacy_by_id(cursor, 1)

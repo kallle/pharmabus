@@ -38,6 +38,9 @@ def check_login(cursor, username, password):
     return check_password_hash(pwhash[0], password)
 
 
+# Generic user registration function.
+# We just create a login here, the information regarding pharmacy/driver/patient has to be created before
+# and passed in as one of the ids
 def register_user(cursor, username, password, driver_id=None, patient_id=None, pharmacy_id=None):
     salted = generate_password_hash(password)
     cursor.execute('INSERT INTO Users(username, pwd, driver_id, patient_id, pharmacy_id) Values (?,?,?,?,?)', (username, salted, driver_id, patient_id, pharmacy_id))
