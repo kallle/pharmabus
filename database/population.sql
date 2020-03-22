@@ -1,20 +1,20 @@
 INSERT INTO users VALUES
-(1, 'D1', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 1, NULL, NULL),
-(2, 'D2', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 2, NULL, NULL ),
-(3, 'D3', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 3, NULL, NULL),
-(4, 'D4', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 4, NULL, NULL),
-(5, 'D5', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 5, NULL, NULL),
-(6, 'D6', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', 6, NULL, NULL),
-(7, 'A1', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 1, NULL),
-(8, 'A2', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 2, NULL),
-(9, 'A3', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 3, NULL),
-(10, 'A4', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 4, NULL),
-(11, 'A5', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 5 , NULL),
-(12, 'A6', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 6 , NULL),
-(13, 'A7', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 7 , NULL),
-(14, 'A8', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 8 , NULL),
-(15, 'A9', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 9 , NULL),
-(16, 'A10', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', '', NULL, 10, NULL);
+(1, 'D1', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 1, NULL, NULL),
+(2, 'D2', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 2, NULL, NULL ),
+(3, 'D3', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 3, NULL, NULL),
+(4, 'D4', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 4, NULL, NULL),
+(5, 'D5', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 5, NULL, NULL),
+(6, 'D6', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', 6, NULL, NULL),
+(7, 'A1', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 1, NULL),
+(8, 'A2', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 2, NULL),
+(9, 'A3', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 3, NULL),
+(10, 'A4', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 4, NULL),
+(11, 'A5', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 5 , NULL),
+(12, 'A6', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 6 , NULL),
+(13, 'A7', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 7 , NULL),
+(14, 'A8', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 8 , NULL),
+(15, 'A9', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 9 , NULL),
+(16, 'A10', 'pbkdf2:sha256:150000$GO9tKh4w$a7496d665aeca0b322cda1abe36f6494aabb431e119ca8addbd0f87fdf789b45', NULL, 10, NULL);
 
 
 INSERT INTO drivers VALUES
