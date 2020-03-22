@@ -57,7 +57,7 @@ def register_patient(cursor, patient):
         'Values (?,?,?,?,?,?)'
     )
     cursor.execute(qry, (patient.name, addr.postal_code, addr.street, addr.number,
-                         coors.latitude, coors.longitudeh))
+                         coors.latitude, coors.longitude))
     patient_id = cursor.lastrowid
     return patient_id
 
@@ -71,6 +71,6 @@ def register_pharmacy(cursor, pharmacy):
         'Values (?,?,?,?,?,?)'
     )
     cursor.execute(qry, (pharmacy.name, addr.postal_code, addr.street, addr.number,
-                         coors.latitude, coors.longitudeh))
+                         coors.latitude, coors.longitude))
     pharmacy_id = cursor.lastrowid
     return pharmacy_id
