@@ -69,9 +69,9 @@ def is_overlord(username):
 
 def is_patient(username):
     if compare_role(username, Role.PATIENT):
-        return '', True
+        return ''
     else:
-        return 'User {:1!l} is not a patient!'.format(username), False
+        return 'User {:1!l} is not a patient!'.format(username)
 
 
 def is_driver(username):
