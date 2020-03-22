@@ -22,7 +22,7 @@ INSERT INTO users VALUES
 
 
 INSERT INTO drivers VALUES
-(1, 'Karl der Grosse'    ,  100, 38100, 'Marstall' , 42, 52.26548, 	10.52356, 10, 20, 10, 10, 20, 30),
+(1, 'Karl der Grosse'    ,  100, 38100, 'Marstall' , 42, 52.267770, 10.524170, 10, 20, 10, 10, 20, 30),
 (2, 'Mellaroy Archer' ,  20, 14057, 'Kurfuerstendamm'    , 123, 	52.50023,  	13.31, 10, 20, 30, 10, 20, 30),
 (3, 'Ray Gillette'   ,  50, 14476, 'Tristanstr.'     , 11, 52.45701,  	13.10295, 10, 20, 30, 10, 20, 30),
 (4, 'Roby Bubble'   ,  75, 81377, 'Eichendorffstr.'     , 42, 48.1148493, 11.5486665, 10, 20, 30, 10, 20, 30),

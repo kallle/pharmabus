@@ -56,6 +56,8 @@ class Driver:
         return hash(self.id)
 
     def geq(self, other):
-        return self.volume() >= other.volume()
+        self_volume = self.cooler_dimensions.volume() + self.storage_dimensions.volume()
+        other_volume = other.cooler_dimensions.volume() + other.storage_dimensions.volume()
+        return self_volume >= other_volume
 
 
