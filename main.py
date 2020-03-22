@@ -61,7 +61,11 @@ def compare_role(username, role):
 
 
 def is_overlord(username):
-    return username == 'DreadPirateRoberts'
+    if username == 'DreadPirateRoberts':
+        return
+    else:
+        return 'User {:1!l} is not the boss!'.format(username)
+
 
 
 def is_patient(username):
@@ -262,6 +266,16 @@ def upload_stock():
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")
+
+
+@app.route('/calculate_routes', methods=['GET', 'POST'])
+@login_required(must=[is_overlord])
+def calculate_routes():
+    if flask.request.method == 'POST':
+        print("CALCULATE!")
+        return render_template('index.html')
+    else:
+        return render_template("calculate_routes.html")
 
 
 @app.route('/complex')

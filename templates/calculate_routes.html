@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Route Berechnen{% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('calculate_routes') }}" method="post">
+    <div class="form-group">
+
+        <input type=submit value=Starten>
+    </div>
+</form>
+{% endblock %}
