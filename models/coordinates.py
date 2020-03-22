@@ -21,10 +21,10 @@ class Coordinates:
 
     # shamelessly stolen from https://stackoverflow.com/a/19412565/919434
     def bird_distance(self, other):
-        lat1 = self.latitude
-        lon1 = self.longitude
-        lat2 = other.latitude
-        lon2 = other.longitude
+        lat1 = radians(self.latitude)
+        lon1 = radians(self.longitude)
+        lat2 = radians(other.latitude)
+        lon2 = radians(other.longitude)
         dlon = lon2 - lon1
         dlat = lat2 - lat1
         a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
@@ -33,6 +33,11 @@ class Coordinates:
         R = 6373.0
         distance = R * c
         return distance
+
+    def geq(self, other):
+        self_sum = self.latitude + self.longitude
+        other_sum = other.latitude + other.longitude
+        return self_sum >= other_sum
 
 
 def get_default_coordinates():

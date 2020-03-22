@@ -28,10 +28,13 @@ class Pharmacy:
         return self._stock
 
     def reduce_stock(self, med, delta):
-        self._stock[med] -= delta
-        amount = self._stock[med]
+        amount = self._stock.stock[med]
+        amount -= delta
+        if amount < 0 :
+            raise "must not have negative stock"
+        self._stock.stock[med] = amount
         if amount == 0:
-            del self._stock[med]
+            del self._stock.stock[med]
         return amount
 
     def set_stock(self, stock):

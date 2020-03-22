@@ -4,6 +4,6 @@ class Stock:
         for elem in med_amount_list:
             self._stock[elem[0]] = elem[1]
 
-        @property
-        def stock(self):
-            return self._stock
+    @property
+    def stock(self):
+        return self._stock

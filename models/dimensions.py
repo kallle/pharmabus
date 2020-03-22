@@ -23,7 +23,7 @@ class Dimensions:
                 ).format(self=self)
 
     def volume(self):
-        return self.width() * self.height() * self.depth()
+        return self.width * self.height * self.depth
 
 
 def get_default_dimensions():
