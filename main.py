@@ -293,12 +293,14 @@ def start_calculation():
     drivers = get_all_drivers(c)
     print("I have {} drivers".format(len(drivers)))
     pharmacies = get_all_pharmacies(c)
-    print("I have {} pharmacies".format(pharmacies))
+    print("I have {} pharmacies".format(len(pharmacies)))
     orders = get_all_orders(c)
     print("I have {} orders".format(len(orders)))
     if len(orders) == 0:
         return list()
-    driver_based_delivery_sets = delivery_set_splitter(delivery_set_reducer(generate_delivery_item_base_set(drivers, pharmacies, orders)))
+    base_set = generate_delivery_item_base_set(drivers, pharmacies, orders)
+    reduced_set = delivery_set_reducer(base_set)
+    driver_based_delivery_sets = delivery_set_splitter(reduced_set)
     for delivery_set in driver_based_delivery_sets:
         print("for driver " + delivery_set[0].driver)
         print(travelling_sales_man(delivery_set))
