@@ -21,9 +21,14 @@ class Coordinates:
 
     # shamelessly stolen from https://stackoverflow.com/a/19412565/919434
     def bird_distance(self, other):
-        dlon = radians(other.longitude) - radians(self.longitude)
-        dlat = radians(other.latitude) - radians(self.latitude)
-        a = sin(dlat / 2)**2 + cos(self.latitude) * cos(other.latitude) * sin(dlon / 2)**2
+        lat1 = self.latitude
+        lon1 = self.longitude
+        lat2 = other.latitude
+        lon2 = other.longitude
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        assert a >= 0
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
         R = 6373.0
         distance = R * c

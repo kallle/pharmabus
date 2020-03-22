@@ -21,6 +21,9 @@ class Delivery_item:
         else:
             return False
 
+    def __str__(self):
+        return "{}/{}/{}/{}".format(self.driver, self.pharmacy, self.patient,self.med)
+
 
 # calculate distances based on bird distance calculation provided
 # by coordinate
@@ -34,12 +37,30 @@ def generate_possible_driver_pharmacy_set(drivers, pharmacies):
     res = list()
     for driver in drivers:
         for pharmacy in pharmacies:
-            if distance(driver, pharmacy) < driver.range:
+            dis = distance(driver, pharmacy)
+            if  dis < driver.range:
                 res.append([driver, pharmacy])
+            else:
+                print("driver {} does not like the distance to {} of {}".format(driver.name, pharmacy.name, dis))
     return res
 
 
+class Single_order:
+    def __init__(self, patient, medication):
+        self.patient = patient
+        self.medication = medication
+
+
+def translate_db_orders_to_single_order(orders):
+    ret = list()
+    for order in orders:
+        for med in order.medications:
+            ret.append(Single_order(order.patient, med))
+    return ret
+
+
 def generate_possible_driver_order_set(drivers, orders):
+    orders = translate_db_orders_to_single_order(orders)
     res = list()
     for driver in drivers:
         for order in orders:
@@ -51,7 +72,9 @@ def generate_possible_driver_order_set(drivers, orders):
 def generate_delivery_item_base_set(drivers, pharmacies, orders):
     res = list()
     driver_pharmacy_set = generate_possible_driver_pharmacy_set(drivers, pharmacies)
+    print(driver_pharmacy_set)
     driver_order_set = generate_possible_driver_order_set(drivers, orders)
+    print(driver_order_set)
     for doelement in driver_order_set:
         for dpelement in driver_pharmacy_set:
             if doelement[2] in dpelement[1].stock:
@@ -88,6 +111,7 @@ def filter(list, probe, key=lambda a: a):
 
 def delivery_set_reducer(possible_delivery_set):
     sort(possible_delivery_set, lambda a,b : a.geq(b))
+    print(possible_delivery_set)
     drives = list()
     while len(possible_delivery_set) > 0:
         current = possible_delivery_set[0]
