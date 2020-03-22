@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ## Run
 
-Das folgende Skript erstellt die sqlite Datenbank und startet das Programm.
+Das folgende Skript erstellt die sqlite Datenbank und startet das Programm. ACHTUNG: Dies überschreibt alle Daten in der Datenbank.
 
 ```
 bash run.sh
