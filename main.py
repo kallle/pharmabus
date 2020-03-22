@@ -207,7 +207,7 @@ def submit_order():
         recipe_p = flask.request.values.get('rezept')
         conn = get_db()
         c = conn.cursor()
-        error, userp = is_patient(get_username()):
+        error, userp = is_patient(get_username())
         if not userp:
             raise error
         patient_id = get_patient_id_by_username(get_username(), c)
