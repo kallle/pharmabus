@@ -133,6 +133,26 @@ def register_driver():
         return render_template("register_driver.html")
 
 
+@app.route('/submit_order', methods=['GET', 'POST'])
+def register_pharmacy():
+    if flask.request.method == 'POST':
+        handelsname = flask.request.values.get('handelsname')
+        hersteller = flask.request.values.get('hersteller')
+        amount = flask.request.values.get('amount')
+        recipe_p = flask.request.values.get('rezept')
+        conn = get_db()
+        c = conn.cursor()
+        patient_id = get_patient_id_by_username(get_username(), c)
+        med_id = get_medication_by_name_supplier(handelsname, hersteller)
+        if patient_id == None or med_id == None:
+            raise "You are either not a patient or the medication does not exist"
+        insert_order(patient_id, med_id, amount, recipe_p, cursor)
+        conn.commit()
+        return render_template('index.html')
+    else:
+        return render_template("submit_order.html")
+
+
 def compare_role(username, role):
     conn = sqlite3.connect(settings.DATABASE_URL)
     c = conn.cursor()

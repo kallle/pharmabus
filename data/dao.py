@@ -74,3 +74,58 @@ def register_pharmacy(cursor, pharmacy):
                          coors.latitude, coors.longitude))
     pharmacy_id = cursor.lastrowid
     return pharmacy_id
+
+
+def get_medication_by_name_supplier(product_name, supplier, cursor):
+    qry = ('SELECT id '
+           'FROM meds '
+           'WHERE product_name = ? AND '
+           '      supplier = ?')
+    cursor.execute(qry, (product_name, supplier))
+    med_id = cursor.fetchone()
+    return med_id
+
+
+def get_patient_id_by_username(username, cursor):
+    qry = ('SELECT patient_id '
+           'FROM Users '
+           'WHERE username = ?')
+    cursor.execute(qry, (username))
+    driver_id = cursor.fetchone()
+    return driver_id
+
+
+def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
+    qry = ('SELECT id
+            FROM meds
+            WHERE pzn = ?')
+    cursor.execute(qry, (pzn))
+    med_id = cursor.fetchone()
+    if med_id:
+        return med_id
+    qry = ('INSERT INTO meds('
+           'pzn, product_name, ingredient, supplier, quantity, dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe) '
+           'VALUES (?,?,?,?,?,?,?,?,?,?)')
+    cursor.execute(qry, (product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
+    return cursor.lastrowid
+
+
+def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
+    med_id = insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor)
+    qry = ('INSERT INTO pharmacy_stores('
+           'pharmacy_id,med_id,amount) '
+           'VALUES (?,?,?) '
+           'ON DUPLICATE KEY UPDATE')
+    cursor.execute(qry, (pharmacy_id, med_id, amount))
+
+
+def insert_order(patient_id, med_id, amount, recipe_p, cursor):
+    qry = ('INSERT INTO orders('
+           'status, given_by) '
+           'VALUES (\'pending\',?)')
+    cursor.execute(qry, (patient))
+    order_id = cursor.lastrowid
+    qry = ('INSERT INTO order_contains('
+           'order_id, med_id, amount, recipe_with_customer) '
+           'VALUES(?,?,?,?)')
+    cursor.execute(qry, (order_id, med_id, amount, 1 if recipe_p else 0))
