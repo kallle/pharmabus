@@ -102,7 +102,7 @@ def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z
     cursor.execute(qry, (pzn,))
     med_id = cursor.fetchone()
     if med_id:
-        return med_id
+        return med_id[0]
     qry = ('INSERT INTO meds('
            'pzn, product_name, ingredient, supplier, quantity, dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe) '
            'VALUES (?,?,?,?,?,?,?,?,?,?)')
@@ -125,7 +125,7 @@ def clear_stock(cursor, pharmacy_id):
 
 
 def process_stock(cursor, pharmacy_id, stock):
-    clear_stock(cursor, pharmacy_id)
+    #clear_stock(cursor, pharmacy_id)
     for (med, amount) in stock:
         dim = med.dimensions
         insert_stock(pharmacy_id, amount,
