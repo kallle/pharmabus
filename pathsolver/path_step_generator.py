@@ -22,6 +22,8 @@ class Delivery_item:
             False
 
 
+# calculate distances based on bird distance calculation provided
+# by coordinate
 def distance(a, b):
     return a.coordinates().bird_distance(b.coordinates())
 
