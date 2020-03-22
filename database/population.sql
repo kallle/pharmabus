@@ -50,6 +50,20 @@ INSERT INTO pharmacies VALUES
 (10, 'Rosen Apotheke'                  , 80331, 'Rosenstraße'       , 6, 48.1364717, 11.5738671);
 
 
+INSERT INTO orders VALUES
+(1, 'pending', 1)
+(2, 'pending', 2)
+(3, 'pending', 3)
+(4, 'pending', 4);
+
+
+INSERT INTO order_contains VALUES
+(1, 1, NULL, 1, 1),
+(1, 2, NULL, 2, 1),
+(2, 1, NULL, 3, 1),
+(3, 1, NULL, 1, 1),
+(4, 1, NULL, 2, 1);
+
 INSERT INTO meds VALUES
 (1, 3867219, 'ACC 200 Brausetabletten', 'Acetylcystein'     , 'Hexal'             , '50 Stk'              , 10, 5 , 5, 0, 0),
 (2, 3920801, 'ACC 100 Brausetabletten', 'Acetylcystein'     , 'Hexal'             , '100 Stk'             , 10, 5 , 5, 0, 0),
