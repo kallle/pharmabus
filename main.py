@@ -210,21 +210,26 @@ def register_driver():
     else:
         return render_template("register_driver.html")
 
+
+def not_empty(item):
+    return item != ''
+
 @app.route('/submit_order', methods=['GET', 'POST'])
 @login_required(must=[is_patient])
 def submit_order():
     if flask.request.method == 'POST':
-        handelsname = flask.request.values.get('handelsname')
-        hersteller = flask.request.values.get('hersteller')
-        amount = flask.request.values.get('amount')
+        handelsname = flask.request.form.getlist('handelsname')
+        hersteller = flask.request.form.getlist('hersteller')
+        amount = flask.request.form.getlist('amount')
+        handelsname = filter(not_empty, handelsname)
+        hersteller = filter(not_empty, hersteller)
+        amount = filter(not_empty, amount)
+        order = list(zip(handelsname, hersteller, amount))
         recipe_p = flask.request.values.get('rezept')
         conn = get_db()
         c = conn.cursor()
         patient_id = get_patient_id(c, get_username())
-        med_id = get_medication_by_name_supplier(handelsname, hersteller)
-        if med_id == None:
-            raise InvalidOrderException("You are either not a patient or the medication does not exist")
-        insert_order(patient_id, med_id, amount, recipe_p, c)
+        insert_order(c, patient_id, order, recipe_p)
         conn.commit()
         return render_template('index.html')
     else:

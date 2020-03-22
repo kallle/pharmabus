@@ -1,5 +1,6 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from helper import InvalidOrderException
 from models.role import Role, InvalidRoleException
 
 
@@ -129,12 +130,22 @@ def process_stock(cursor, pharmacy_id, stock):
                      cursor)
 
 
-def insert_order(patient_id, med_id, amount, recipe_p, cursor):
+def insert_order(cursor, patient_id, meds, recipe_p):
     qry = ('INSERT INTO orders('
            'status, given_by) '
            'VALUES (\'pending\',?)')
     cursor.execute(qry, (patient_id,))
     order_id = cursor.lastrowid
+    for med in meds:
+        handelsname, hersteller, amount = med
+        med_id = get_medication_by_name_supplier(handelsname, hersteller, cursor)
+        if med_id == None:
+            raise InvalidOrderException("The medication does not exist")
+        else:
+            insert_order_item(cursor, order_id, med_id, amount, recipe_p)
+
+
+def insert_order_item(cursor, order_id, med_id, amount, recipe_p):
     qry = ('INSERT INTO order_contains('
            'order_id, med_id, amount, recipe_with_customer) '
            'VALUES(?,?,?,?)')

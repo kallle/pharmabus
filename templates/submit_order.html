@@ -5,14 +5,19 @@
 {% block page_body %}
 <form action="{{ url_for('submit_order') }}" method="post">
     <div class="form-group">
-        <label for="handelsname">Handelsname</label>
-        <input name="handelsname" id="handelsname" required>
+        {% for number in range(10) %}
+        <label for="{{ ['handelsname', number]|join }}">Handelsname</label>
+        <input name="handelsname" id="{{ ['handelsname', number]|join }}">
+        <label for="{{ ['hersteller', number]|join }}">Hersteller</label>
+        <input name="hersteller" id="{{ ['hersteller', number]|join }}">
+        <label for="{{ ['amount', number]|join }}">Anzahl</label>
+        <input name="amount" id="{{ ['amount', number]|join }}" type="number">
         <br />
-        <label for="hersteller">Hersteller</label>
-        <input name="hersteller" id="hersteller" required>
+        {% endfor %}
+        <hr/>
         <br />
         <label for="rezept">Rezept liegt lokal vor</label>
-        <input type="checkbox" name="rezept" id="rezept" required>
+        <input type="checkbox" name="rezept" id="rezept">
         <br />
 
         <input type="submit" value="Send">
