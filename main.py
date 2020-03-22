@@ -1,25 +1,25 @@
-import pprint
 import sqlite3
+from secrets import compare_digest
 
 import flask
-from flask import Flask, jsonify, render_template, session, request, flash, redirect
-from flask.views import MethodView
+from flask import Flask, render_template, session, request, flash, redirect
+from flask import g
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
 from data import dao
-from data.dao import get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
-    process_stock, get_patient_id
-from helper import process_uploaded_csv_file, read_stock, InvalidOrderException, allowed_file
+from data.dao import insert_order, get_pharmacy_id, \
+    process_stock, get_patient_id, get_all_drivers, get_all_pharmacies, get_all_orders
+from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
 from models.address import Address
-from models.coordinates import get_default_coordinates
+from models.coordinates import get_default_coordinates, Coordinates
 from models.dimensions import get_default_dimensions
 from models.driver import Driver
 from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role
-from flask import current_app, g
-from secrets import compare_digest
+from pathsolver.path_step_generator import delivery_set_splitter, delivery_set_reducer, generate_delivery_item_base_set, \
+    travelling_sales_man
 
 
 def get_db():
@@ -128,7 +128,7 @@ messages = {
     'login_success': 'Login erfolgreich!',
     'login_failure': 'Ungültiges Passwort oder Account existiert nicht!',
     'is_logged_in': 'Eingeloggt',
-    'logout': 'Déconnecté!',
+    'logout': 'Ausgeloggt!',
     'login_required': 'Login Vorausgesetzt',
     'access_denied': 'Zugriff verweigert',
     'auth_error': 'Authentifizierungsfehler： {0}'
@@ -138,13 +138,14 @@ SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
-
-
-@app.route('/secret')
-@login_required(username=['chuck', 'mary'])
-def secret():
-    return render_template('secret.html')
+    if is_logged_in_as_patient():
+        conn = get_db()
+        c = conn.cursor()
+        patient_id = get_patient_id(c, get_username())
+        orders = get_all_orders(c, patient_id)
+        return render_template('orders.html', orders=orders)
+    else:
+        return render_template('index.html')
 
 
 @app.route('/register_pharmacy', methods=['GET', 'POST'])
@@ -155,7 +156,9 @@ def register_pharmacy():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
 
         pharmacy = Pharmacy(None, name, addr, coor, None)
         conn = get_db()
@@ -179,7 +182,9 @@ def register_patient():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
 
         patient = Patient(None, name, addr, coor)
         conn = get_db()
@@ -204,7 +209,9 @@ def register_driver():
         street = flask.request.values.get('street')
         number = flask.request.values.get('number')
         addr = Address(postal_code, street, number)
-        coor = get_default_coordinates()
+        latitude = flask.request.values.get('latitude')
+        longitude = flask.request.values.get('longitude')
+        coor = Coordinates(latitude, longitude)
         storage = get_default_dimensions()
         cooled_storage = get_default_dimensions()
 
@@ -278,30 +285,40 @@ def upload_stock():
         return render_template("upload_stock.html")
 
 
+def start_calculation():
+    print("MAGIC IS HAPPENING NOW")
+    conn = get_db()
+    c = conn.cursor()
+    drivers = get_all_drivers(c)
+    print("I have {} drivers".format(len(drivers)))
+    pharmacies = get_all_pharmacies(c)
+    print("I have {} pharmacies".format(len(pharmacies)))
+    orders = get_all_orders(c)
+    print("I have {} orders".format(len(orders)))
+    if len(orders) == 0:
+        return list()
+    base_set = generate_delivery_item_base_set(drivers, pharmacies, orders)
+    reduced_set = delivery_set_reducer(base_set)
+    driver_based_delivery_sets = delivery_set_splitter(reduced_set)
+    for delivery_set in driver_based_delivery_sets:
+        print("for driver " + delivery_set[0].driver)
+        print(travelling_sales_man(delivery_set))
+
+
 @app.route('/calculate_routes', methods=['GET', 'POST'])
 @login_required(must=[is_overlord])
 def calculate_routes():
     if flask.request.method == 'POST':
-        print("CALCULATE!")
-        return render_template('index.html')
+        conn = get_db()
+        c = conn.cursor()
+        routes = start_calculation()
+        #route = make_fake_route(c)
+        #routes = [route, route]
+        return render_template('calculated_routes.html', routes=routes)
     else:
         return render_template("calculate_routes.html")
 
 
-@app.route('/complex')
-@login_required(must=[is_driver])
-def complexview():
-    return render_template('secret.html')
-
-
-class ProtectedView(MethodView):
-    decorators = [login_required]
-
-    def get(self):
-        return "You are logged in as <b>{0}</b>".format(get_username())
-
-
-app.add_url_rule('/protected', view_func=ProtectedView.as_view('protected'))
 app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)

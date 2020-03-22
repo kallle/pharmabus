@@ -34,6 +34,9 @@ class Pharmacy:
             del self._stock[med]
         return amount
 
+    def set_stock(self, stock):
+        self._stock = stock
+
     def __repr__(self):
         return ('Pharmacy(id={self._id!r}, '
                 'name={self._name!r}, '

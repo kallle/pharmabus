@@ -1,12 +1,17 @@
 class Order:
-    def __init__(self, id, patient, medications):
+    def __init__(self, id, patient, medications, status):
         self._id = id
         self._patient = patient
         self._medications = medications
+        self._status = status
 
     @property
     def id(self):
         return self._id
+
+    @property
+    def status(self):
+        return self._status
 
     @property
     def patient(self):
