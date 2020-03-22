@@ -165,6 +165,7 @@ def register_pharmacy():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, pharmacy_id=pharmacy_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_pharmacy.html")
@@ -188,6 +189,7 @@ def register_patient():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, patient_id=patient_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_patient.html")
@@ -214,6 +216,7 @@ def register_driver():
         password = flask.request.values.get('password')
         dao.register_user(c, username, password, driver_id=driver_id)
         conn.commit()
+        flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
         return render_template("register_driver.html")
@@ -239,6 +242,7 @@ def submit_order():
         patient_id = get_patient_id(c, get_username())
         insert_order(c, patient_id, order, recipe_p)
         conn.commit()
+        flash('Bestellung erfolgreich übermittelt')
         return render_template('index.html')
     else:
         return render_template("submit_order.html")
@@ -252,13 +256,13 @@ def upload_stock():
     if flask.request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            flash('Keine Datei ausgewählt')
             return redirect(request.url)
         file = request.files['file']
         # if user does not select file, browser also
         # submit an empty part without filename
         if file.filename == '':
-            flash('No selected file')
+            flash('Keine Datei ausgewählt')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             data = process_uploaded_csv_file(file.stream)
@@ -268,7 +272,7 @@ def upload_stock():
             pharmacy_id = get_pharmacy_id(c, get_username())
             process_stock(c, pharmacy_id, stock)
             conn.commit()
-            pprint.pprint(stock)
+            flash('Bestand erfolgreich aktualisiert')
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")
