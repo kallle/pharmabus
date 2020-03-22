@@ -1,16 +1,17 @@
-import pprint
 import sqlite3
+from secrets import compare_digest
 
 import flask
-from flask import Flask, jsonify, render_template, session, request, flash, redirect
+from flask import Flask, render_template, session, request, flash, redirect
+from flask import g
 from flask.views import MethodView
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
 from data import dao
-from data.dao import get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
+from data.dao import insert_order, get_pharmacy_id, \
     process_stock, get_patient_id
-from helper import process_uploaded_csv_file, read_stock, InvalidOrderException, allowed_file
+from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates
 from models.dimensions import get_default_dimensions
@@ -18,8 +19,6 @@ from models.driver import Driver
 from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role
-from flask import current_app, g
-from secrets import compare_digest
 
 
 def get_db():
@@ -293,8 +292,11 @@ def start_calculation():
 @login_required(must=[is_overlord])
 def calculate_routes():
     if flask.request.method == 'POST':
-        print("CALCULATE!")
-        return render_template('routes.html')
+        conn = get_db()
+        c = conn.cursor()
+        route = make_fake_route(c)
+        routes = [route]
+        return render_template('calculated_routes.html', routes=routes)
     else:
         return render_template("calculate_routes.html")
 

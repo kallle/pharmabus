@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Routen{% endblock %}
+
+{% block page_body %}
+<div class="row">
+    <p>
+        Berechnete Routen:
+    </p>
+</div>
+{% for route in routes %}
+<div class="row">
+    <h4>
+        Fahrer: {{route.driver.name}}
+        <hr/>
+    </h4>
+    <br/>
+    <ul>
+        {% for point in route.points %}
+        <li> {{point.where.address.street}} {{point.where.address.number}} ({{point.where.address.postal_code}}) - {{point.kind}} </li>
+        {% if point.meds %}
+        <ul>
+            {% for post in point.meds %}
+            <li>{{post.medication.name}} ({{post.medication.supplier}}) - {{post.amount}}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+{% endblock %}

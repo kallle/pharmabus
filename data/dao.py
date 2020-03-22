@@ -1,8 +1,17 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helper import InvalidOrderException
+from models.address import Address
+from models.coordinates import Coordinates
+from models.dimensions import Dimensions
+from models.driver import Driver
+from models.medication import Medication
+from models.patient import Patient
+from models.pharmacy import Pharmacy
 from models.role import Role, InvalidRoleException
 
+
+class InvalidOrderException(Exception):
+    pass
 
 def get_role(cursor, username):
     cursor.execute('Select driver_id, pharmacy_id, patient_id from Users where username = ?', (username,))
@@ -183,3 +192,86 @@ def get_all_drivers(cursor):
     qry = ('SELECT id, name, range, koo_lat, koo_long '
            'FROM drivers')
     cursor.execute(qry)
+
+
+class PatientNotFoundException(Exception):
+    pass
+
+
+class PharmacyNotFoundException(Exception):
+    pass
+
+
+class DriverNotFoundException(Exception):
+    pass
+
+
+class MedicationNotFoundException(Exception):
+    pass
+
+
+def get_pharmacy_by_id(cursor, pharmacy_id):
+    qry = ('SELECT  name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
+           'FROM pharmacies '
+           'where id = ?')
+    cursor.execute(qry, (pharmacy_id,))
+    pharmacy = cursor.fetchone()
+    if not pharmacy:
+        raise PharmacyNotFoundException('Patient with id {:1!r} not found'.format(pharmacy_id))
+    (name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long) = pharmacy
+    addr = Address(addr_plz, addr_street, addr_street_nr)
+    coors = Coordinates(koo_lat, koo_long)
+    return Pharmacy(pharmacy_id, name, addr, coors, None)
+
+
+def get_patient_by_id(cursor, patient_id):
+    qry = ('SELECT  name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
+           'FROM patients '
+           'where id = ?')
+    cursor.execute(qry, (patient_id,))
+    patient = cursor.fetchone()
+    if not patient:
+        raise PatientNotFoundException('Patient with id {:1!r} not found'.format(patient_id))
+    (name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long) = patient
+    addr = Address(addr_plz, addr_street, addr_street_nr)
+    coors = Coordinates(koo_lat, koo_long)
+    return Patient(patient_id, name, addr, coors)
+
+
+def get_driver_by_id(cursor, driver_id):
+    qry = ('SELECT name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long, '
+           'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
+           'FROM drivers '
+           'where id = ?')
+    cursor.execute(qry, (driver_id,))
+    driver = cursor.fetchone()
+    if not driver:
+        raise DriverNotFoundException('Driver with id {:1!r} not found'.format(driver_id))
+    (name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long,
+     cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z) = driver
+    cooler_dim = Dimensions(cooler_dim_x, cooler_dim_y, cooler_dim_z)
+    storage_dim = Dimensions(storage_dim_x, storage_dim_y, storage_dim_z)
+    addr = Address(addr_plz, addr_street, addr_street_nr)
+    coors = Coordinates(koo_lat, koo_long)
+    return Driver(driver_id, name, range, addr, coors, cooler_dim, storage_dim)
+
+
+def get_medication_by_id(cursor, med_id):
+    qry = ('SELECT pzn, product_name, ingredient, supplier, quantity, '
+           'dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe '
+           'from meds where id = ?')
+
+    cursor.execute(qry, (med_id,))
+    med = cursor.fetchone()
+    if not med:
+        raise MedicationNotFoundException('Medication with id {:1!r} not found'.format(med_id))
+    (pzn, name, ingredients, supplier, quantity,
+     dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe) = med
+    dimensions = Dimensions(dimension_x, dimension_y, dimension_z)
+    return Medication(pzn, name, supplier, dimensions, requires_cooling, quantity, ingredients, requires_recipe)
+
+
+def get_med(product_name, supplier, cursor):
+    med_id = get_medication_by_name_supplier(product_name, supplier, cursor)
+    return get_medication_by_id(cursor, med_id)
+
