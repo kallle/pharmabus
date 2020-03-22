@@ -1,5 +1,4 @@
-class stock:
-
+class Stock:
     def __init__(self, med_amount_list):
         self._stock = dict()
         for elem in med_amount_list:

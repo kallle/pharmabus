@@ -10,7 +10,7 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 import settings
 from data import dao
 from data.dao import insert_order, get_pharmacy_id, \
-    process_stock, get_patient_id
+    process_stock, get_patient_id, get_all_drivers, get_all_pharmacies
 from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates
@@ -19,6 +19,8 @@ from models.driver import Driver
 from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role
+from pathsolver.path_step_generator import delivery_set_splitter, delivery_set_reducer, generate_delivery_item_base_set, \
+    travelling_sales_man
 
 
 def get_db():
@@ -279,9 +281,11 @@ def upload_stock():
 
 def start_calculation():
     print("MAGIC IS HAPPENING NOW")
-    drivers = get_all_drivers(conn.cursor())
-    pharmacies = get_all_pharmacies(conn.cursor())
-    orders = get_all_orders(conn.cursor())
+    conn = get_db()
+    c = conn.cursor()
+    drivers = get_all_drivers(c)
+    pharmacies = get_all_pharmacies(c)
+    orders = get_all_orders(c)
     driver_based_delivery_sets = delivery_set_splitter(delivery_set_reducer(generate_delivery_item_base_set(drivers, pharmacies, orders)))
     for delivery_set in driver_based_delivery_sets:
         print("for driver " + delivery_set[0].driver)

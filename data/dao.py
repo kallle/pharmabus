@@ -8,6 +8,7 @@ from models.medication import Medication
 from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role, InvalidRoleException
+from models.stock import Stock
 
 
 class InvalidOrderException(Exception):
@@ -190,9 +191,50 @@ def get_driver_id(cursor, username):
 
 def get_all_drivers(cursor):
     qry = ('SELECT id, name, range, koo_lat, koo_long '
+           'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
            'FROM drivers')
-    cursor.execute(qry)
+    drivers = []
+    for d in cursor.execute(qry):
+        (id, name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long,
+         cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z) = d
+        cooler_dim = Dimensions(cooler_dim_x, cooler_dim_y, cooler_dim_z)
+        storage_dim = Dimensions(storage_dim_x, storage_dim_y, storage_dim_z)
+        addr = Address(addr_plz, addr_street, addr_street_nr)
+        coors = Coordinates(koo_lat, koo_long)
+        drivers.append(Driver(id, name, range, addr, coors, cooler_dim, storage_dim))
+    return drivers
 
+def get_stock_for_pharmacy(cursor, pharmacy_id):
+    qry = ('SELECT med_id, amount '
+           'FROM pharmacy_stores '
+           'WHERE pharmacy_id = ?')
+    stock = []
+    for s in cursor.execute(qry, (pharmacy_id,)):
+        (med_id, amount) = s
+        med = get_medication_by_id(cursor, med_id)
+        stock.append((med, amount))
+    return Stock(stock)
+
+
+def get_all_pharmacies(cursor):
+    qry = ('SELECT id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
+           'FROM pharmacies')
+    pharmacies = []
+    for p in cursor.execute(qry):
+        (id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long) = p
+        addr = Address(addr_plz, addr_street, addr_street_nr)
+        coors = Coordinates(koo_lat, koo_long)
+        stock = get_stock_for_pharmacy(cursor, id)
+        pharmacies.append(Pharmacy(id, name, addr, coors, stock))
+    return pharmacies
+
+
+
+def get_all_orders(cursor):
+    qry = ('SELECT id, given_by from orders')
+    for o in cursor.execute(qry):
+        (order_id, pat_id) = o
+        patient = get_patient_by_id(cursor, pat_id)
 
 class PatientNotFoundException(Exception):
     pass
