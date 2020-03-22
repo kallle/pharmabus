@@ -10,7 +10,7 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 import settings
 from data import dao
 from data.dao import insert_order, get_pharmacy_id, \
-    process_stock, get_patient_id, get_all_drivers, get_all_pharmacies
+    process_stock, get_patient_id, get_all_drivers, get_all_pharmacies, get_all_orders
 from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates
@@ -298,6 +298,7 @@ def calculate_routes():
     if flask.request.method == 'POST':
         conn = get_db()
         c = conn.cursor()
+        start_calculation()
         route = make_fake_route(c)
         routes = [route, route]
         return render_template('calculated_routes.html', routes=routes)

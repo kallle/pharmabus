@@ -5,6 +5,7 @@ from models.coordinates import Coordinates
 from models.dimensions import Dimensions
 from models.driver import Driver
 from models.medication import Medication
+from models.order import Order
 from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role, InvalidRoleException
@@ -190,7 +191,7 @@ def get_driver_id(cursor, username):
 
 
 def get_all_drivers(cursor):
-    qry = ('SELECT id, name, range, koo_lat, koo_long '
+    qry = ('SELECT id, name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long, '
            'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
            'FROM drivers')
     drivers = []
@@ -203,6 +204,7 @@ def get_all_drivers(cursor):
         coors = Coordinates(koo_lat, koo_long)
         drivers.append(Driver(id, name, range, addr, coors, cooler_dim, storage_dim))
     return drivers
+
 
 def get_stock_for_pharmacy(cursor, pharmacy_id):
     qry = ('SELECT med_id, amount '
@@ -229,12 +231,29 @@ def get_all_pharmacies(cursor):
     return pharmacies
 
 
+def get_meds_for_order(cursor, order_id):
+    qry = ('SELECT med_id, amount '
+           'FROM order_contains '
+           'where order_id = ?')
+    medications = []
+    for p in cursor.execute(qry, (order_id,)):
+        (med_id, amount) = p
+        med = get_medication_by_id(cursor, med_id)
+        medications.append((med, amount))
+    return medications
+
 
 def get_all_orders(cursor):
     qry = ('SELECT id, given_by from orders')
+    orders = []
     for o in cursor.execute(qry):
         (order_id, pat_id) = o
         patient = get_patient_by_id(cursor, pat_id)
+        medications = get_meds_for_order(cursor, order_id)
+        order = Order(order_id, patient, medications)
+        orders.append(order)
+    return orders
+
 
 class PatientNotFoundException(Exception):
     pass

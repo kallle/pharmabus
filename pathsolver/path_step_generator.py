@@ -25,7 +25,7 @@ class Delivery_item:
 # calculate distances based on bird distance calculation provided
 # by coordinate
 def distance(a, b):
-    return a.coordinates().bird_distance(b.coordinates())
+    return a.coordinates.bird_distance(b.coordinates)
 
 
 # this is horribly inefficient as O(|drivers| x |pharmacies|)
@@ -54,7 +54,7 @@ def generate_delivery_item_base_set(drivers, pharmacies, orders):
     driver_order_set = generate_possible_driver_order_set(drivers, orders)
     for doelement in driver_order_set:
         for dpelement in driver_pharmacy_set:
-            if doelement[2] in dpelement[1].stock[]:
+            if doelement[2] in dpelement[1].stock:
                 res.append(Delivery_item(doelement[0], doelement[1], doelement[2], doelement[3]))
     return res
 
