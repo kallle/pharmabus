@@ -301,10 +301,10 @@ def start_calculation():
     reduced_set = delivery_set_reducer(base_set)
     driver_based_delivery_sets = delivery_set_splitter(reduced_set)
     for delivery_set in driver_based_delivery_sets:
-        print("for driver " + delivery_set[0].driver)
+        print("for driver " + delivery_set[0].driver.name)
         print(travelling_sales_man(delivery_set))
 
-
+# test
 @app.route('/calculate_routes', methods=['GET', 'POST'])
 @login_required(must=[is_overlord])
 def calculate_routes():

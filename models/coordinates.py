@@ -34,6 +34,9 @@ class Coordinates:
         distance = R * c
         return distance
 
+    def distance(self, other):
+        return self.bird_distance(other)
+
     def geq(self, other):
         self_sum = self.latitude + self.longitude
         other_sum = other.latitude + other.longitude

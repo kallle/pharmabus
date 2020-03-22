@@ -134,9 +134,9 @@ def remove(lst, probe):
     return deleted
 
 
-def filter(list, probe, key=lambda a: a):
+def filter(lst, probe, key=lambda a: a):
     ret = list()
-    for elem in list:
+    for elem in lst:
         if probe(elem):
             ret.append(key(elem))
     return ret
@@ -168,14 +168,13 @@ def delivery_set_reducer(possible_delivery_set):
 # after calling delivery_set_reducer
 def delivery_set_splitter(possible_delivery_set):
     assert len(possible_delivery_set) > 0
-    driver_sets = list()
-    driver_sets.append(list([possible_delivery_set[0]]))
-    possible_delivery_set = possible_delivery_set[1:]
+    driver_sets = dict()
     for drive in possible_delivery_set:
-        if drive.driver == driver_sets[-1][-1]:
-            driver_sets[-1].append(driver)
+        if drive.driver in driver_sets.keys():
+            driver_sets[drive.driver].append(drive)
         else:
-            driver_sets.append(list([driver]))
+            driver_sets[drive.driver] = list([drive])
+    return [value for value in driver_sets.values()]
 
 
 def generate_pharmacy_count_table(driver_delivery_set):
@@ -189,11 +188,13 @@ def generate_pharmacy_count_table(driver_delivery_set):
 
 
 def find_closest_next_step(start_step, possible_next_steps):
-    closest = possible_next_steps[0]
+    closest_element = possible_next_steps[0]
+    closest_distance = start_step.coordinates.distance(possible_next_steps[0].coordinates)
     for step in possible_next_steps[1:]:
-        if start_step.distance(step) < closest:
-            closest = step
-    return closest
+        if start_step.coordinates.distance(step.coordinates) < closest_distance:
+            closest_distance = start_step.coordinates.distance(step.coordinates)
+            closest_element = step
+    return closest_element
 
 
 def travelling_sales_man(driver_delivery_set):
@@ -202,7 +203,7 @@ def travelling_sales_man(driver_delivery_set):
     sort(driver_delivery_set, lambda a,b : pharmacy_count[a.pharmacy] >= pharmacy_count[b.pharmacy])
     start_pharmacy = driver_delivery_set[0].pharmacy
     drive_order.append(start_pharmacy)
-    rem_steps = filter(driver_delivery_set, lambda elem: elem.pharamcy == start_pharmacy, lambda elem: elem.patient)
+    rem_steps = filter(driver_delivery_set, lambda elem: elem.pharmacy == start_pharmacy, lambda elem: elem.patient)
     rem_pharmacies = list(dict.fromkeys(filter(driver_delivery_set, lambda elem: elem.pharmacy != start_pharmacy, lambda elem: elem.pharmacy)))
     rem_steps += rem_pharmacies
     while len(rem_steps) > 0:
