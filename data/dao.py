@@ -15,6 +15,8 @@ from models.stock import Stock
 class InvalidOrderException(Exception):
     pass
 
+
+# Retrieves the role of the user identified by username
 def get_role(cursor, username):
     cursor.execute('Select driver_id, pharmacy_id, patient_id from Users where username = ?', (username,))
     driver_id, pharmacy_id, patient_id = cursor.fetchone()
@@ -27,6 +29,7 @@ def get_role(cursor, username):
     raise InvalidRoleException('User {:1!l} has an invalid role!'.format(username))
 
 
+# Checks whether the username and password combination identifies a known user
 def check_login(cursor, username, password):
     cursor.execute('Select pwd from Users where username = ?', (username,))
     pwhash = cursor.fetchone()
@@ -88,6 +91,7 @@ def register_pharmacy(cursor, pharmacy):
     return pharmacy_id
 
 
+# Retrieves the id for a medication, identified by product name and supplier name
 def get_medication_by_name_supplier(product_name, supplier, cursor):
     qry = ('SELECT id '
            'FROM meds '
@@ -101,6 +105,7 @@ def get_medication_by_name_supplier(product_name, supplier, cursor):
         return med_id[0]
 
 
+# Adds a medication to the database
 def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
     qry = ('SELECT id '
            'FROM meds '
@@ -115,7 +120,7 @@ def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z
     cursor.execute(qry, (pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p))
     return cursor.lastrowid
 
-
+# Adds a single stock entry for a pharmacy
 def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):
     med_id = insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor)
     qry = ('INSERT INTO pharmacy_stores('
@@ -125,11 +130,13 @@ def insert_stock(pharmacy_id, amount, pzn, product_name, ingredient, supplier, q
     cursor.execute(qry, (pharmacy_id, med_id, amount))
 
 
+# Clears the current stock of a pharmacy
 def clear_stock(cursor, pharmacy_id):
     qry = 'DELETE FROM pharmacy_stores where pharmacy_id = ?'
     cursor.execute(qry, (pharmacy_id,))
 
 
+# Refreshes the stock of a pharmacy
 def process_stock(cursor, pharmacy_id, stock):
     #clear_stock(cursor, pharmacy_id)
     for (med, amount) in stock:
@@ -141,6 +148,7 @@ def process_stock(cursor, pharmacy_id, stock):
                      cursor)
 
 
+# Stores an order in the database
 def insert_order(cursor, patient_id, meds, recipe_p):
     qry = ('INSERT INTO orders('
            'status, given_by) '
@@ -156,6 +164,7 @@ def insert_order(cursor, patient_id, meds, recipe_p):
             insert_order_item(cursor, order_id, med_id, amount, recipe_p)
 
 
+# Adds a single item belonging to a order consisting of several items
 def insert_order_item(cursor, order_id, med_id, amount, recipe_p):
     qry = ('INSERT INTO order_contains('
            'order_id, med_id, amount, recipe_with_customer) '
@@ -163,6 +172,7 @@ def insert_order_item(cursor, order_id, med_id, amount, recipe_p):
     cursor.execute(qry, (order_id, med_id, amount, 1 if recipe_p else 0))
 
 
+# Checks that the user is a pharmacy and returns their pharmacy id.
 def get_pharmacy_id(cursor, username):
     cursor.execute('Select pharmacy_id from Users where username = ?', (username,))
     (pharmacy_id,) = cursor.fetchone()
@@ -172,6 +182,7 @@ def get_pharmacy_id(cursor, username):
         raise InvalidRoleException('{:1!l} is missing his pharmacy id'.format(username))
 
 
+# Checks that the user is a patient and returns their patient id.
 def get_patient_id(cursor, username):
     cursor.execute('Select patient_id from Users where username = ?', (username,))
     (patient_id,) = cursor.fetchone()
@@ -181,6 +192,7 @@ def get_patient_id(cursor, username):
         raise InvalidRoleException('{:1!l} is missing his patient id'.format(username))
 
 
+# Checks that the user is a driver and returns their driver id.
 def get_driver_id(cursor, username):
     cursor.execute('Select driver_id from Users where username = ?', (username,))
     (driver_id,) = cursor.fetchone()
@@ -190,6 +202,7 @@ def get_driver_id(cursor, username):
         raise InvalidRoleException('{:1!l} is missing his driver id'.format(username))
 
 
+# Retrieves all drivers known to the system
 def get_all_drivers(cursor):
     qry = ('SELECT id, name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long, '
            'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
@@ -207,6 +220,7 @@ def get_all_drivers(cursor):
     return drivers
 
 
+# Retrieves the stock of a single pharmacy, identified by pharmacy_id
 def get_stock_for_pharmacy(cursor, pharmacy_id):
     qry = ('SELECT med_id, amount '
            'FROM pharmacy_stores '
@@ -220,6 +234,7 @@ def get_stock_for_pharmacy(cursor, pharmacy_id):
     return Stock(stock)
 
 
+# Retrieves all pharmacies known to the system with their current stock
 def get_all_pharmacies(cursor):
     qry = ('SELECT id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
            'FROM pharmacies')
@@ -234,6 +249,7 @@ def get_all_pharmacies(cursor):
     return pharmacies
 
 
+# Retrieves all medication belonging to a order identified by order_id
 def get_meds_for_order(cursor, order_id):
     qry = ('SELECT med_id, amount '
            'FROM order_contains '
@@ -247,6 +263,8 @@ def get_meds_for_order(cursor, order_id):
     return medications
 
 
+# Retrieves all orders known to the system
+# Can be filtered for specific patients by passing in an id as for_patient
 def get_all_orders(cursor, for_patient=None):
     qry = ('SELECT id, given_by, status from orders')
     orders = []
@@ -279,6 +297,7 @@ class MedicationNotFoundException(Exception):
     pass
 
 
+# Retrieves all information of a pharmacy, identified by its id
 def get_pharmacy_by_id(cursor, pharmacy_id):
     qry = ('SELECT  name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
            'FROM pharmacies '
@@ -293,6 +312,7 @@ def get_pharmacy_by_id(cursor, pharmacy_id):
     return Pharmacy(pharmacy_id, name, addr, coors, None)
 
 
+# Retrieves all information of a patient, identified by their id
 def get_patient_by_id(cursor, patient_id):
     qry = ('SELECT  name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long '
            'FROM patients '
@@ -307,6 +327,7 @@ def get_patient_by_id(cursor, patient_id):
     return Patient(patient_id, name, addr, coors)
 
 
+# Retrieves all information of a driver, identified by their id
 def get_driver_by_id(cursor, driver_id):
     qry = ('SELECT name, range, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long, '
            'cooler_dim_x, cooler_dim_y, cooler_dim_z, storage_dim_x, storage_dim_y, storage_dim_z '
@@ -325,6 +346,7 @@ def get_driver_by_id(cursor, driver_id):
     return Driver(driver_id, name, range, addr, coors, cooler_dim, storage_dim)
 
 
+# Retrieves all information of a medication, identified by its id
 def get_medication_by_id(cursor, med_id):
     qry = ('SELECT pzn, product_name, ingredient, supplier, quantity, '
            'dimension_x, dimension_y, dimension_z, requires_cooling, requires_recipe '
@@ -340,6 +362,7 @@ def get_medication_by_id(cursor, med_id):
     return Medication(pzn, name, supplier, dimensions, requires_cooling, quantity, ingredients, requires_recipe)
 
 
+# Retrieves all information of a patient, identified by its product name and supplier name
 def get_med(product_name, supplier, cursor):
     med_id = get_medication_by_name_supplier(product_name, supplier, cursor)
     return get_medication_by_id(cursor, med_id)

@@ -4,7 +4,6 @@ from secrets import compare_digest
 import flask
 from flask import Flask, render_template, session, request, flash, redirect
 from flask import g
-from flask.views import MethodView
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
@@ -147,12 +146,6 @@ def index():
         return render_template('orders.html', orders=orders)
     else:
         return render_template('index.html')
-
-
-@app.route('/secret')
-@login_required(username=['chuck', 'mary'])
-def secret():
-    return render_template('secret.html')
 
 
 @app.route('/register_pharmacy', methods=['GET', 'POST'])
@@ -320,20 +313,6 @@ def calculate_routes():
         return render_template("calculate_routes.html")
 
 
-@app.route('/complex')
-@login_required(must=[is_driver])
-def complexview():
-    return render_template('secret.html')
-
-
-class ProtectedView(MethodView):
-    decorators = [login_required]
-
-    def get(self):
-        return "You are logged in as <b>{0}</b>".format(get_username())
-
-
-app.add_url_rule('/protected', view_func=ProtectedView.as_view('protected'))
 app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)
