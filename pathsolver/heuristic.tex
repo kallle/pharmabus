@@ -12,13 +12,17 @@
 
 
 \section{Vorstellung der Beteidigten}
-Dieses Projekt wurde von den \textit{IASHeldenVormBildschirm} bearbeitet. Das sind namentlich David Klein, Simon Koch und Manuel Karl, Doktoranden am Institut für Anwendungssicherheit der TU Braunschweig. Unterstützung erfolgte von Robina Meyer, Doktorandin in der Pharmazeutischen Technologie der LMU München. Vereint in dem Gedanken, trotz und wegen der derzeitigen Isolationsmaßnahmen Positives zu bewirken, folgten wie dem Aufruf der Bundesregierung beim \#WirVsVirus Hackathon ein Beitrag zu leisten. Wir hoffen, dass unser Ansatz Anwendung findet.
+Dieses Projekt wurde von den \textit{IASHeldenVormBildschirm} bearbeitet. Das sind namentlich David Klein, Simon Koch und Manuel Karl, Doktoranden am Institut für Anwendungssicherheit der TU Braunschweig. Unterstützung erfolgte von Robina Meyer, Doktorandin in der Pharmazeutischen Technologie der LMU München.
+
+Vereint in dem Gedanken, trotz und wegen der derzeitigen Isolationsmaßnahmen Positives zu bewirken, folgten wir dem Aufruf der Bundesregierung beim \#WirVsVirus Hackathon ein Beitrag zu leisten. Wir hoffen, dass unser Ansatz Anwendung findet.
+
+Zum Starten und Verwenden des Programms bitte die README lesen.
 
 
 \section{Problemstellung und Ziele}
 
 Das Problem der medizinischen Versorgung der Bevölkerung, insb. von Risikogruppen, die besoders auf diese angewiesen sind, ist ein facettenreiches Problem.
-Hierbei stellt sich nicht nur die Frage der konkreten Behandlung sondern auch, wie man eine Therapie ermögliocht, i.e., wie können wir sicherstellen, dass die benötigten Medikamente auch beim Patienten ankommen.
+Hierbei stellt sich nicht nur die Frage der konkreten Behandlung sondern auch, wie man eine Fortführung der Therapie zu Hause ermöglicht, i.e., wie können wir sicherstellen, dass die benötigten Medikamente auch beim Patienten ankommen.
 
 Dieses Problem verschärft sich noch einmal in den Zeiten einer globalen Pandemie wie sie COVID-19 darstellt. Zu Zeiten einer Pandemie gilt es zu vermeiden, dass Risikogruppen sich unnötig außerhalb und in Nähe anderer, potentiell infektiöser, Mitmenschen aufhalten. Genau dies ist aber der Fall wenn ein Patient sich Medikamente von der Apotheke abohlen muss um seine Behandlung in den eigenen vier Wänden fortführen zu können.
 
@@ -52,13 +56,13 @@ Es gibt ein paar Features die wir initial gerne Implementiert hätten, für die 
 Mannstunden nachgerüstet werden können ohne das Gesamtkonzept überdenken zu müssen:
 
 \begin{itemize}
-\item Die Fahrdinstanz eines Fahrer kann limitiert werden, um einen Fahrer nicht endlos lange Strecken fahren zu lassen
+\item Die Fahrdistanz eines Fahrer kann limitiert werden, um einen Fahrer nicht endlos lange Strecken fahren zu lassen
 \item Ein Fahrer kann möglicherweise nur begrenzt viel gekühlte, oder allgemeine Ladung transportieren
 \item Benachrichtung der Fahrer über Streckenzuweisung via Email (oder jedwedem anderen notification Dienst)
 \item Die Eingabemaske und Prozess für die Bestellungen ist in dieser Form vermutlich nicht ausreichend da hier spezifische Produktkennzeichnungen weggelassen wurden die zur eindeutigen Identifikation der Medikamente notwendig wären
 \end{itemize}
 
-\section{Heuristic}
+\section{Heuristik}
 
 Im folgenden noch die kurze Definition unserer derzeit eingesetzten Heuristik, die probiert
 
@@ -67,7 +71,7 @@ Im folgenden noch die kurze Definition unserer derzeit eingesetzten Heuristik, d
 \item möglichst kürzeste Route zu finden
 \end{itemize}
 
-hierbei wird aber gerade der letzte Punkt sehr heuristisch gelöst und es kann schnell zu Sidecases kommen, indem die Route nicht optimal ist. Die Heursitik ist programmintern aber ausreichend wegabstrahiert, sodass ein Austausch einfach durchzuführen ist.
+hierbei wird aber gerade der letzte Punkt sehr heuristisch gelöst und es kann schnell zu Sidecases kommen, indem die Route nicht optimal ist. Die Heursitik ist programmintern aber ausreichend wegabstrahiert, sodass ein Austausch einfach durchzuführen wäre.
 
 \section{Input}
 

@@ -1,5 +1,15 @@
 # PharmaBus
 
+## Dependencies
+
+```
+python3
+pip
+virtualenv
+sqlite
+working internet ;)
+```
+
 ## Install
 
 Install via:
@@ -10,6 +20,8 @@ pip install -r requirements.txt
 ```
 
 ## Run
+
+Das folgende Skript erstellt die sqlite Datenbank und startet das Programm.
 
 ```
 bash run.sh
