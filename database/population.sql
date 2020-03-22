@@ -52,5 +52,6 @@ INSERT INTO pharmacy_stores VALUES
 (1, 2, 2),
 (1, 3, 3),
 (2, 1, 4),
-(2, 5, 5);
+(2, 5, 5),
+(2, 6, 5);
 
