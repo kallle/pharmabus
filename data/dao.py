@@ -226,7 +226,6 @@ def get_all_pharmacies(cursor):
     pharmacies = []
     cursor.execute(qry)
     for p in cursor.fetchall():
-        print(p)
         (id, name, addr_plz, addr_street, addr_street_nr, koo_lat, koo_long) = p
         addr = Address(addr_plz, addr_street, addr_street_nr)
         coors = Coordinates(koo_lat, koo_long)
