@@ -1,3 +1,4 @@
+import pprint
 import sqlite3
 
 import flask
@@ -7,6 +8,7 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
+from helper import process_uploaded_csv_file
 from models.address import Address
 from models.coordinates import get_default_coordinates
 from models.dimensions import get_default_dimensions
@@ -239,8 +241,8 @@ def upload_stock():
             flash('No selected file')
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            content = file.read()
-            print(content)
+            data = process_uploaded_csv_file(file.stream)
+            pprint.pprint(data)
         return render_template('index.html')
     else:
         return render_template("upload_stock.html")

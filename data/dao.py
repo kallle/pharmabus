@@ -129,3 +129,31 @@ def insert_order(patient_id, med_id, amount, recipe_p, cursor):
            'order_id, med_id, amount, recipe_with_customer) '
            'VALUES(?,?,?,?)')
     cursor.execute(qry, (order_id, med_id, amount, 1 if recipe_p else 0))
+
+
+def get_pharmacy_id(cursor, username):
+    cursor.execute('Select pharmacy_id from Users where username = ?', (username,))
+    (pharmacy_id,) = cursor.fetchone()
+    if pharmacy_id:
+        return pharmacy_id
+    else:
+        raise InvalidRoleException('{:1!l} is missing his pharmacy id'.format(username))
+
+
+def get_patient_id(cursor, username):
+    cursor.execute('Select patient_id from Users where username = ?', (username,))
+    (patient_id,) = cursor.fetchone()
+    if patient_id:
+        return patient_id
+    else:
+        raise InvalidRoleException('{:1!l} is missing his patient id'.format(username))
+
+
+def get_driver_id(cursor, username):
+    cursor.execute('Select driver_id from Users where username = ?', (username,))
+    (driver_id,) = cursor.fetchone()
+    if driver_id:
+        return driver_id
+    else:
+        raise InvalidRoleException('{:1!l} is missing his driver id'.format(username))
+>>>>>>> Added v1 of csv upload
