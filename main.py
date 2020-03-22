@@ -295,7 +295,7 @@ def calculate_routes():
         conn = get_db()
         c = conn.cursor()
         route = make_fake_route(c)
-        routes = [route]
+        routes = [route, route]
         return render_template('calculated_routes.html', routes=routes)
     else:
         return render_template("calculate_routes.html")
