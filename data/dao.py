@@ -83,16 +83,7 @@ def get_medication_by_name_supplier(product_name, supplier, cursor):
            '      supplier = ?')
     cursor.execute(qry, (product_name, supplier))
     med_id = cursor.fetchone()
-    return med_id
-
-
-def get_patient_id_by_username(username, cursor):
-    qry = ('SELECT patient_id '
-           'FROM Users '
-           'WHERE username = ?')
-    cursor.execute(qry, (username,))
-    driver_id = cursor.fetchone()
-    return driver_id
+    return med_id[0]
 
 
 def insert_medication(pzn, product_name, ingredient, supplier, quantity, x, y, z, cooling_p, recipe_p, cursor):

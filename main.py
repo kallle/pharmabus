@@ -8,8 +8,8 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
-from data.dao import get_patient_id_by_username, get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
-    process_stock
+from data.dao import get_medication_by_name_supplier, insert_order, get_pharmacy_id, \
+    process_stock, get_patient_id
 from helper import process_uploaded_csv_file, read_stock, InvalidOrderException
 from models.address import Address
 from models.coordinates import get_default_coordinates
@@ -198,7 +198,7 @@ def submit_order():
         error, userp = is_patient(get_username())
         if not userp:
             raise error
-        patient_id = get_patient_id_by_username(get_username(), c)
+        patient_id = get_patient_id(c, get_username())
         med_id = get_medication_by_name_supplier(handelsname, hersteller)
         if patient_id == None or med_id == None:
             raise InvalidOrderException("You are either not a patient or the medication does not exist")
