@@ -284,8 +284,13 @@ def start_calculation():
     conn = get_db()
     c = conn.cursor()
     drivers = get_all_drivers(c)
+    print("I have {} drivers".format(len(drivers)))
     pharmacies = get_all_pharmacies(c)
+    print("I have {} pharmacies".format(pharmacies))
     orders = get_all_orders(c)
+    print("I have {} orders".format(len(orders)))
+    if len(orders) == 0:
+        return list()
     driver_based_delivery_sets = delivery_set_splitter(delivery_set_reducer(generate_delivery_item_base_set(drivers, pharmacies, orders)))
     for delivery_set in driver_based_delivery_sets:
         print("for driver " + delivery_set[0].driver)
@@ -298,9 +303,9 @@ def calculate_routes():
     if flask.request.method == 'POST':
         conn = get_db()
         c = conn.cursor()
-        start_calculation()
-        route = make_fake_route(c)
-        routes = [route, route]
+        routes = start_calculation()
+        #route = make_fake_route(c)
+        #routes = [route, route]
         return render_template('calculated_routes.html', routes=routes)
     else:
         return render_template("calculate_routes.html")
