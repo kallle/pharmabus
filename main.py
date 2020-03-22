@@ -35,6 +35,20 @@ def close_db(e=None):
         db.close()
 
 
+def compare_role(username, role):
+    conn = sqlite3.connect(settings.DATABASE_URL)
+    c = conn.cursor()
+    r = dao.get_role(c, username)
+    return r == role
+
+
+def is_patient(username):
+    if compare_role(username, Role.PATIENT):
+        return '', True
+    else:
+        return 'User {:1!l} is not a patient!'.format(username), False
+
+
 def check_my_users(user):
     conn = get_db()
     c = conn.cursor()
@@ -191,6 +205,9 @@ def submit_order():
         recipe_p = flask.request.values.get('rezept')
         conn = get_db()
         c = conn.cursor()
+        error, userp = is_patient(get_username()):
+        if not userp:
+            raise error
         patient_id = get_patient_id_by_username(get_username(), c)
         med_id = get_medication_by_name_supplier(handelsname, hersteller)
         if patient_id == None or med_id == None:
@@ -200,20 +217,6 @@ def submit_order():
         return render_template('index.html')
     else:
         return render_template("submit_order.html")
-
-
-def compare_role(username, role):
-    conn = sqlite3.connect(settings.DATABASE_URL)
-    c = conn.cursor()
-    r = dao.get_role(c, username)
-    return r == role
-
-
-def is_patient(username):
-    if compare_role(username, Role.PATIENT):
-        return
-    else:
-        return 'User {:1!l} is not a patient!'.format(username)
 
 
 def allowed_file(filename):
