@@ -221,9 +221,6 @@ def submit_order():
         recipe_p = flask.request.values.get('rezept')
         conn = get_db()
         c = conn.cursor()
-        error, userp = is_patient(get_username())
-        if not userp:
-            raise error
         patient_id = get_patient_id(c, get_username())
         med_id = get_medication_by_name_supplier(handelsname, hersteller)
         if patient_id == None or med_id == None:
