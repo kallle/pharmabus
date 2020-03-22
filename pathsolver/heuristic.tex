@@ -12,35 +12,36 @@
 
 
 \section{Vorstellung der Beteidigten}
+Dieses Projekt wurde von den \textit{IASHeldenVormBildschirm} bearbeitet. Das sind namentlich David Klein, Simon Koch und Manuel Karl, Doktoranden am Institut für Anwendungssicherheit der TU Braunschweig. Unterstützung erfolgte von Robina Meyer, Doktorandin in der Pharmazeutischen Technologie der LMU München. Vereint in dem Gedanken, trotz und wegen der derzeitigen Isolationsmaßnahmen Positives zu bewirken, folgten wie dem Aufruf der Bundesregierung beim \#WirVsVirus Hackathon ein Beitrag zu leisten. Wir hoffen, dass unser Ansatz Anwendung findet.
 
 
 \section{Problemstellung und Ziele}
 
-Das Problem der Medizinischen Versorgung der Bevölkerung, insb. von Risikogruppen die besoders auf diese angewiesen sind, ist ein facettenreiches Problem.
-Hierbei stellt sich nicht nur die Frage der konkreten Behandlung sondern auch, wie man eine Behandlung versorgt, i.e., wie können wir sicherstellen, dass die benötigten Medikamente auch beim Patienten ankommen.
+Das Problem der medizinischen Versorgung der Bevölkerung, insb. von Risikogruppen, die besoders auf diese angewiesen sind, ist ein facettenreiches Problem.
+Hierbei stellt sich nicht nur die Frage der konkreten Behandlung sondern auch, wie man eine Therapie ermögliocht, i.e., wie können wir sicherstellen, dass die benötigten Medikamente auch beim Patienten ankommen.
 
-Dieses Problem verschärft sich noch einmal in den Zeiten einer globalen Pandemie wie sie COVID-19 darstellt. Zu zeiten einer Pandemie gilt es zu vermeiden, dass Risikogruppen sich unnötig außerhalb und in Nähe anderer, potentiell infektiöser, Mitmenschen aufhalten. Genau dies ist aber der Fall wenn ein Patient sich Medikamente von der Apotheke abohlen muss um seine Behandlung in den eigenen vier Wänden fortführen zu können.
+Dieses Problem verschärft sich noch einmal in den Zeiten einer globalen Pandemie wie sie COVID-19 darstellt. Zu Zeiten einer Pandemie gilt es zu vermeiden, dass Risikogruppen sich unnötig außerhalb und in Nähe anderer, potentiell infektiöser, Mitmenschen aufhalten. Genau dies ist aber der Fall wenn ein Patient sich Medikamente von der Apotheke abohlen muss um seine Behandlung in den eigenen vier Wänden fortführen zu können.
 
-Dieses vermeidbare Problem wollen wir angehen und eine Lösung präsentieren die es erlaubt Patienten zu Hause mit den Medikamenten zu versorgen die sie benötigen. Desweiteren soll die Lösung für eine hohe Skalierbarkeit und deutschlandweites Deployment ausgelegt sein.
+Dieses vermeidbare Problem wollen wir angehen und eine Lösung präsentieren, die es erlaubt, Patienten zu Hause mit den Medikamenten zu versorgen, die sie benötigen. Desweiteren soll die Lösung für eine hohe Skalierbarkeit und deutschlandweites Deployment ausgelegt sein.
 
 \subsection{Ziele}
 
-Zusammenfassend können wir also sagen, dass die Lösung die wir anstreben die folgenden Ziele hat:
+Zusammenfassend können wir also sagen, dass die Lösung, die wir anstreben folgende Ziele hat:
 
 \begin{itemize}
 \item Alle Patienten sollen mit den benötigten Medikamenten versorgt werden
 \item Fahrer sollen so sparsam (wenig Fahrer) und so effektiv (ein Fahrer bedient max. Anzahl and Patienten) genutzt werden wie möglich
-\item Eine zentrale Webseite soll die Aufnahem und Verteilung von Bestellungen regeln, sodass man Kapazitäten von Freiwilligen und Apotheken aggregieren kann
+\item Eine zentrale Webseite soll die Aufnahme und Verteilung von Bestellungen regeln, sodass man Kapazitäten von Freiwilligen und Apotheken aggregieren kann
 \end{itemize}
 
 \subsection{Out of Scope}
 
-Da wir im Rahmen des Hackathon nur begrenzt Zeit hatten und eine allumfassende Lösung mehr Manntage erfordert hätte und uns für andere Aspekte das Wissen fehlte sind die folgenden Punkte für uns out of scope:
+Da wir im Rahmen des Hackathon nur begrenzt Zeit hatten und eine allumfassende Lösung mehr Manntage erfordert hätte und uns zudem für andere Aspekte das Wissen fehlte, sind die folgenden Punkte für uns out of scope:
 
 \begin{itemize}
-\item Apotheken wollen möglicherweise nicht ihr Lager leer verkaufen um Laufkundschaft bedienen zu können und eine Verteilung von Bestellungen basierend auf Lagerbeständen würde dies ermöglichen
+\item Apotheken wollen unter Umständen nicht ihr Lager leer verkaufen um Laufkundschaft bedienen zu können. Eine Verteilung von Bestellungen basierend auf Lagerbeständen würde dies ermöglichen
 \item Die Routenfindung für einen Fahrer der mehrere Apotheken/Patienten bedienen soll ist komplex und eine optimale Lösung wäre eine Formulierung des 'Travelling Salesman Problem' und somit NP-Vollständig
-\item Es besteht die Möglichkeit das zu wenig Medikamente für alle Bestellungen verfügbar sind. Dies ist ein ethisches Problem.
+\item Es besteht die Möglichkeit, dass zu wenig Medikamente für alle Bestellungen verfügbar sind. Dies ist ein ethisches Problem.
 \item Wir sind nicht bestrebt Ressourcen schonend die beste Kombination zu finden um die insgesamte Fahrstrecke aller Fahrer zu minimieren
 \item Manche Medikamente sind rezeptpflichtig und eine Übertragung des Rezept muss möglicherweise direkt vom Arzt an die Apotheke gehen, wenn der Patient das Rezept nicht zu Hause vorliegen hat. Dies ist ein rechtliches Problem.
 \end{itemize}
@@ -51,22 +52,22 @@ Es gibt ein paar Features die wir initial gerne Implementiert hätten, für die 
 Mannstunden nachgerüstet werden können ohne das Gesamtkonzept überdenken zu müssen:
 
 \begin{itemize}
-\item Fahrdinstanz eines Fahrer kann limitiert werden um einen Fahrer nicht endlos lange Strecken fahren zu lassen
+\item Die Fahrdinstanz eines Fahrer kann limitiert werden, um einen Fahrer nicht endlos lange Strecken fahren zu lassen
 \item Ein Fahrer kann möglicherweise nur begrenzt viel gekühlte, oder allgemeine Ladung transportieren
 \item Benachrichtung der Fahrer über Streckenzuweisung via Email (oder jedwedem anderen notification Dienst)
-\item Die Eingabemaske und Prozess für die Bestellungen ist in dieser Form vermutlich nicht ausreichend da hier spezifische Produktkennzeichnungen weggelassen wurden die zur Identifikation der Medikamente notwendig wären
+\item Die Eingabemaske und Prozess für die Bestellungen ist in dieser Form vermutlich nicht ausreichend da hier spezifische Produktkennzeichnungen weggelassen wurden die zur eindeutigen Identifikation der Medikamente notwendig wären
 \end{itemize}
 
 \section{Heuristic}
 
-Im folgenden noch die kurze Definition unserer derzeit eingesetzten Heuristik die probiert
+Im folgenden noch die kurze Definition unserer derzeit eingesetzten Heuristik, die probiert
 
 \begin{itemize}
 \item möglichst wenig Fahrer einzusetzen
 \item möglichst kürzeste Route zu finden
 \end{itemize}
 
-hierbei wird aber gerade der letzte Punkt sehr heuristisch gelöst und es kann schnell zu Sidecases kommen, indem die Route nicht optimal ist. Die Heursitik ist programmintern aber ausreichend wegabstrahiert, dass ein einfaches austauschen trivial ist.
+hierbei wird aber gerade der letzte Punkt sehr heuristisch gelöst und es kann schnell zu Sidecases kommen, indem die Route nicht optimal ist. Die Heursitik ist programmintern aber ausreichend wegabstrahiert, sodass ein Austausch einfach durchzuführen ist.
 
 \section{Input}
 
@@ -87,7 +88,7 @@ hierbei wird aber gerade der letzte Punkt sehr heuristisch gelöst und es kann s
 
 \section{Algorithmus}
 
-Zuerst müssen wir berechnen welche Schritte ein Fahrer abarbeiten soll, bevor wir die optimale route konzipieren
+Zuerst müssen wir berechnen, welche Schritte ein Fahrer abarbeiten soll, bevor wir die optimale Route konzipieren:
 
 \begin{figure}[h!]
 \begin{lstlisting}[escapeinside={(*}{*)}]
@@ -102,10 +103,11 @@ Zuerst müssen wir berechnen welche Schritte ein Fahrer abarbeiten soll, bevor w
          delete in (*$PD$*) where element (*$(\_,\_,p,\_)$*)
   return drives
 \end{lstlisting}
-\caption{Dieser Algorithmus gibt uns eine heuristisch optimierte zuteilung von fahrern zu routen von apotheken zu patienten mit medikament}
+\caption{Dieser Algorithmus gibt uns eine heuristisch optimierte Zuteilung von Fahrern zu Routen von Apotheken zu Patienten mit Medikament}
 \end{figure}
 
-Der vorherige algorithmus hat uns nun ein set gegeben bei dem alle patienten bedient werden und zwar von der minimalen anzahl an fahrern. Wir betrachten nun einen algorithmus der für ein set das alle tuple beinhaltet die einem einzelnden fahrer zugeordnet sind eine optimale route berechnet.
+\pagebreak
+Der vorherige Algorithmus hat uns nun ein Set gegeben, bei dem alle Patienten bedient werden, und zwar von der minimalen Anzahl an Fahrern. Wir betrachten nun einen Algorithmus der für ein Set das alle tuple beinhaltet, die einem einzelnden Fahrer zugeordnet sind, eine optimale Route berechnet.
 
 \begin{figure}[h]
 \begin{lstlisting}[escapeinside={(*}{*)}]
@@ -123,7 +125,7 @@ Der vorherige algorithmus hat uns nun ein set gegeben bei dem alle patienten bed
      if (*$closest$*) is pharmacy
         rem_steps += {p in D who were served by (*$closest$*))
 \end{lstlisting}
-\caption{Dieser Algorithmus gibt uns die 'optimale route' für einen fahrer}
+\caption{Dieser Algorithmus gibt uns die 'optimale Route' für einen Fahrer}
 \end{figure}
 
 \end{document}
