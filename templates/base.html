@@ -22,7 +22,7 @@
         <ul class="navbar-nav mr-auto">
 
           <li class="nav-item active">
-            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/">Übersicht</a>
           </li>
             {% if is_logged_in_as_overlord() %}
             <li class="nav-item">
@@ -31,7 +31,7 @@
             {% endif %}
             {% if is_logged_in_as_pharmacy() %}
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('upload_stock')}}">Upload Stock</a>
+                <a class="nav-link" href="{{url_for('upload_stock')}}">Bestand aktualisieren</a>
             </li>
             {% endif %}
             {% if is_logged_in_as_patient() %}
@@ -41,13 +41,13 @@
             {% endif %}
             {% if not is_logged_in() %}
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('register_driver')}}">Register Driver</a>
+                <a class="nav-link" href="{{url_for('register_driver')}}">Fahrer Registrieren</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('register_patient')}}">Register Patient</a>
+                <a class="nav-link" href="{{url_for('register_patient')}}">Patient Registrieren</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('register_pharmacy')}}">Register Pharmacy</a>
+                <a class="nav-link" href="{{url_for('register_pharmacy')}}">Apotheke Registrieren</a>
             </li>
             {% endif %}
           <li class="nav-item">
