@@ -4,11 +4,23 @@
 {% block page_body %}
 <form action="{{ url_for('register_pharmacy') }}" method="post">
     <div class="form-group">
-        <label for="name">Name</label>
+        <label for="name">Apotheken Name</label>
         <input name="name" id="name" required>
         <br/>
-        <label for="plz">PLZ</label>
-        <input name="plz" id="plz" required>
+        <label for="email">email</label>
+        <input name="email" id="email" required>
+        <br/>
+        <label for="password">Passwort</label>
+        <input type="password" name="password" id="password" required>
+        <br/>
+        <label for="vorname_besitzer">Vorname des Besitzer</label>
+        <input name="vorname_besitzer" id="vorname_besitzer" required>
+        <br/>
+        <label for="nachname_besitzer">Nachname des Besitzer</label>
+        <input name="nachname_besitzer" id="nachname_besitzer" required>
+        <br/>
+        <label for="postleitzahl">PLZ</label>
+        <input name="postleitzahl" id="postleitzahl" required>
         <br/>
         <label for="street">Straße</label>
         <input name="street" id="street" required>
@@ -16,17 +28,14 @@
         <label for="number">Hausnummer</label>
         <input name="number" id="number" required>
         <br/>
+        <label for="tel">Telefonnummer</label>
+        <input name="tel" id="tel" required>
+        <br/>
         <label for="latitude">Latitude</label>
         <input name="latitude" id="latitude" required>
         <br/>
         <label for="longitude">Longitude</label>
         <input name="longitude" id="longitude" required>
-        <br/>
-        <label for="username">Username</label>
-        <input name="username" id="username" required>
-        <br/>
-        <label for="password">Passwort</label>
-        <input type="password" name="password" id="password" required>
         <br/>
         <input type="submit" value="Registrieren">
     </div>
