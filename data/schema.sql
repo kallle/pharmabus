@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS Stop_Types;
 
 CREATE TABLE Users (
        id          integer primary key,
+       email       text,
        pwd         text,
        surname     text,
        familyname  text,
@@ -66,8 +67,8 @@ CREATE TABLE Prescription_Status (
 
 
 INSERT INTO Prescription_Status (name)
-VALUES ('at_patient'),
-       ('at_doctor');
+VALUES ('PRESENT_AT_DOCTOR'),
+       ('PRESENT_AT_PATIENT');
 
 
 CREATE TABLE Prescriptions (
@@ -110,7 +111,6 @@ CREATE TABLE Stops (
 
 CREATE TABLE Orders (
        id           integer PRIMARY KEY,
-       title        text,
        status       text,
        presription  integer,
        patient      integer,

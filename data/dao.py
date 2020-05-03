@@ -12,9 +12,6 @@ from models.role import Role, InvalidRoleException
 from models.stock import Stock
 
 
-class InvalidOrderException(Exception):
-    pass
-
 
 # Retrieves the role of the user identified by username
 def get_role(cursor, username):
