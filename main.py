@@ -8,18 +8,19 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data import dao
-from data.dao import insert_order, get_pharmacy_id, \
-    process_stock, get_patient_id, get_all_drivers, get_all_pharmacies, get_all_orders
-from helper import process_uploaded_csv_file, read_stock, allowed_file, make_fake_route
+from data.dao import getRegisteredUserById, getOverlord, getPatient, getDoctor, getPharmacy, getDriver,\
+    registerPatient, registerDoctor, registerPharmacy, registerDriver
+from data.dao import getAllDrivers, getAllPharmacies, getAllOrders
+from data.dao import checkLogin, insertOrder, addPrescriptionToOrder
+from helper import make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates, Coordinates
 from models.dimensions import get_default_dimensions
 from models.driver import Driver
 from models.patient import Patient
 from models.pharmacy import Pharmacy
+from models.doctor import Doctor
 from models.role import Role
-from pathsolver.path_step_generator import delivery_set_splitter, delivery_set_reducer, generate_delivery_item_base_set, \
-    travelling_sales_man
 
 
 def get_db():
@@ -42,84 +43,59 @@ def close_db(e=None):
 
 def check_my_users(user):
     conn = get_db()
-    c = conn.cursor()
-    username = user['username']
+    cursor = conn.cursor()
+    email = user['email']
     password = user['password']
-    if username == settings.OVERLORD_NAME and compare_digest(password, settings.OVERLORD_PWD):
+    success, user_id = dao.checkLogin(cursor, email, password)
+    if success:
         return True
-    success = dao.check_login(c, username, password)
-    return success
-
-
-def compare_role(username, role):
-    if username == settings.OVERLORD_NAME:
-        return Role.OVERLORD
-    conn = get_db()
-    c = conn.cursor()
-    r = dao.get_role(c, username)
-    return r == role
-
-
-def is_overlord(username):
-    if username == settings.OVERLORD_NAME:
-        return
     else:
-        return 'User {:1!l} is not the boss!'.format(username)
-
-
-def is_patient(username):
-    if compare_role(username, Role.PATIENT):
-        return
-    else:
-        return 'User {:1!l} is not a patient!'.format(username)
-
-
-def is_driver(username):
-    if compare_role(username, Role.DRIVER):
-        return
-    else:
-        return 'User {:1!l} is not a driver!'.format(username)
-
-
-def is_pharmacy(username):
-    if compare_role(username, Role.PHARMACY):
-        return
-    else:
-        return 'User {:1!l} is not a pharmacy!'.format(username)
+        return False
 
 
 def is_logged_in_as_overlord():
+    conn = get_db()
+    cursor = conn.cursor()
     if not is_logged_in():
         return False
-    username = session.get('simple_username')
-    return username == settings.OVERLORD_NAME
+    user_id = session.get('simple_user_id')
+    return getRole(cursor, user_id)  == settings.OVERLORD
 
 
 def is_logged_in_as_pharmacy():
+    conn = get_db()
+    cursor = conn.cursor()
     if not is_logged_in():
         return False
-    if is_logged_in_as_overlord():
-        return False
-    username = session.get('simple_username')
-    return compare_role(username, Role.PHARMACY)
+    user_id = session.get('simple_user_id')
+    return getRole(cursor, user_id)  == settings.PHARMACY
 
 
 def is_logged_in_as_driver():
+    conn = get_db()
+    cursor = conn.cursor()
     if not is_logged_in():
         return False
-    if is_logged_in_as_overlord():
-        return False
-    username = session.get('simple_username')
-    return compare_role(username, Role.DRIVER)
+    user_id = session.get('simple_user_id')
+    return getRole(cursor, user_id)  == settings.DRIVER
 
 
 def is_logged_in_as_patient():
+    conn = get_db()
+    cursor = conn.cursor()
     if not is_logged_in():
         return False
-    if is_logged_in_as_overlord():
+    user_id = session.get('simple_user_id')
+    return getRole(cursor, user_id)  == settings.PATIENT
+
+
+def is_logged_in_as_doctor():
+    conn = get_db()
+    cursor = conn.cursor()
+    if not is_logged_in():
         return False
-    username = session.get('simple_username')
-    return compare_role(username, Role.PATIENT)
+    user_id = session.get('simple_user_id')
+    return getRole(cursor, user_id)  == settings.DOCTOR
 
 
 app = Flask(__name__)
@@ -138,11 +114,21 @@ SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 @app.route('/')
 def index():
+    user_id = session.get('simple_user_id')
     if is_logged_in_as_patient():
         conn = get_db()
-        c = conn.cursor()
-        patient_id = get_patient_id(c, get_username())
-        orders = get_all_orders(c, patient_id)
+        cursor = conn.cursor()
+        orders = getAllOrdersFiltertForUser(cursor, Role.PATIENT, user_id)
+        return render_template('orders.html', orders=orders)
+    elif is_logged_in_as_doctor():
+        conn = get_db()
+        cursor = conn.cursor()
+        orders = getAllOrdersFiltertForUser(cursor, Role.DOCTOR, user_id)
+        return render_template('orders.html', orders=orders)
+    elif is_logged_in_as_doctor():
+        conn = get_db()
+        cursor = conn.cursor()
+        orders = getAllOrdersFiltertForUser(cursor, Role.PHARMACY, user_id)
         return render_template('orders.html', orders=orders)
     else:
         return render_template('index.html')
@@ -151,23 +137,20 @@ def index():
 @app.route('/register_pharmacy', methods=['GET', 'POST'])
 def register_pharmacy():
     if flask.request.method == 'POST':
-        name = flask.request.values.get('name')
-        postal_code = flask.request.values.get('plz')
+        email = flask.request.values.get('email')
+        pwd = flask.request.values.get('password')
+        surname = flask.request.values.get('vorname_besitzer')
+        familyname = flask.request.values.get('nachname_besitzer')
+        plz = flask.request.values.get('postleitzahl')
         street = flask.request.values.get('street')
-        number = flask.request.values.get('number')
-        addr = Address(postal_code, street, number)
-        latitude = flask.request.values.get('latitude')
+        streetno = flask.request.values.get('number')
+        tel = flask.request.values.get('telefonnummer')
         longitude = flask.request.values.get('longitude')
-        coor = Coordinates(latitude, longitude)
-
-        pharmacy = Pharmacy(None, name, addr, coor, None)
+        latitude = flask.request.values.get('latitude')
+        name  = flask.request.values.get('name')
         conn = get_db()
         c = conn.cursor()
-        pharmacy_id = dao.register_pharmacy(c, pharmacy)
-        username = flask.request.values.get('username')
-        password = flask.request.values.get('password')
-        dao.register_user(c, username, password, pharmacy_id=pharmacy_id)
-        conn.commit()
+        pharmacy = registerPharmacy(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, name)
         flash("Registrierung erfolgreich")
         return render_template('index.html')
     else:
