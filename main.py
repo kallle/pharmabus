@@ -47,8 +47,9 @@ def check_my_users(user):
     email = user['username']
     password = user['password']
     print('test')
-    success = checkLogin(cursor, email, password)
+    success, id = checkLogin(cursor, email, password)
     if success:
+        session['simple_user_id'] = id
         return True
     else:
         return False
@@ -87,6 +88,7 @@ def is_logged_in_as_patient():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
+    print(user_id)
     return getRole(cursor, user_id)  == Role.PATIENT
 
 
@@ -174,7 +176,8 @@ def register_patient():
         latitude = flask.request.values.get('latitude')
         conn = get_db()
         cursor = conn.cursor()
-        registerPatient(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        partient = registerPatient(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        session['simple_user_id'] = driver.id
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
@@ -198,7 +201,8 @@ def register_driver():
         max_range = flask.request.values.get('max_range')
         conn = get_db()
         cursor = conn.cursor()
-        registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, max_range)
+        driver = registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, max_range)
+        session['simple_user_id'] = driver.id
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
@@ -221,7 +225,8 @@ def register_doctor():
         latitude = flask.request.values.get('latitude')
         conn = get_db()
         cursor = conn.cursor()
-        registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        doctor = registerDoctor(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        session['simple_user_id'] = doctor.id
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
