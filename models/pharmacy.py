@@ -1,9 +1,8 @@
 # TODO: Add medication storage
 class Pharmacy:
 
-
-    def __init__(self, id, pwd, name, surname, familyname, plz, street, streetno, longitude, latitude):
-        super().__init__(id, pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    def __init__(self, id, email, surname, familyname, plz, street, streetno, tel, longitude, latitude, name):
+        super().__init__(id, surname, familyname, plz, street, streetno, longitude, latitude)
         self._name = name
 
     @property
