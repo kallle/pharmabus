@@ -1,5 +1,5 @@
-from coordinates import Coordinates
-from address import Address
+from models.coordinates import Coordinates
+from models.address import Address
 
 class User:
 
