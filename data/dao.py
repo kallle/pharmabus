@@ -28,6 +28,18 @@ class DatabaseEntityDoesNotExist():
         return self._reference_id
 
 
+def getUserId(cursor, email):
+    query = """SELECT id
+               FROM users
+               WHERE email = ?"""
+    cursor.execute(query, (email,))
+    ret = cursor.fetchone()
+    if ret is None:
+        raise DatabaseEntityDoesNotExist("User", email)
+    else:
+        return ret[0]
+
+
 def getOverlord(cursor, row_id):
     query = """SELECT id,
                       email,
@@ -240,20 +252,35 @@ def registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetn
     return getDriver(cursor, row_id)
 
 
-def checkIfRole(cursor, role, id):
+def translateRoleToString(role, plural=True):
     assert role in [Role.PATIENT, Role.PHARMACY, Role.DOCTOR, Role.OVERLORD, Role.DRIVER]
     if role == Role.PHARMACY:
-        role = "Pharmacies"
+        if plural:
+            role = "Pharmacies"
+        else:
+            role = "Pharmacy"
     elif role == Role.DOCTOR:
-        role = "Doctors"
+        role = "Doctor"
+        if plural:
+            role += "s"
     elif role == Role.PATIENT:
-        role = "Patients"
+        role = "Patient"
+        if plural:
+            role += "s"
     elif role == Role.DRIVER:
-        role = "Drivers"
+        role = "Driver"
+        if plural:
+            role += "s"
     elif role == Role.OVERLORD:
-        role = "Overlords"
+        role = "Overlord"
+        if plural:
+            role += "s"
     else:
         raise Exception("WTF")
+    return role
+
+def checkIfRole(cursor, role, id):
+    role = translateRoleToString(role, plural=True)
     query = "SELECT True FROM {} WHERE user_id = ?".format(role)
     cursor.execute(query, (id,))
     res = cursor.fetchone()
@@ -305,8 +332,30 @@ def checkLogin(cursor, email, password):
     return check_password_hash(pwhash[0], password), pwhash[1]
 
 
-def insertOrder(cursor):
-    query = """INSERT INTO Orders(status)
+def getOrder(cursor, row_id):
+    query = """SELECT id,
+                      status,
+                      prescription,
+                      patient,
+                      doctor,
+                      pharmacy
+               FROM Orders
+               WHERE id = ?"""
+    cursor.execute(query,(row_id,))
+    ret = cursor.fetchone()
+    if ret is None:
+        raise DatabaseEntityDoesNotExist("Order", row_id)
+    id,status,prescription,patient,doctor,pharmacy = ret
+    return Order(id,
+                 OrderStatus.get(status),
+                 getPrescription(cursor, prescription) if prescription else None,
+                 patient,
+                 doctor,
+                 pharmacy)
+
+
+def insertOrder(cursor, patient, doctor, pharmacy, prescription=None):
+    query = """INSERT INTO Orders(status, patient, doctor, pharamcy, prescription)
                VALUES (?)"""
     cursor.execute(query,(OrderStatus.AT_PATIENT,))
     rowId = cursor.lastrowid
@@ -412,7 +461,7 @@ def getAllOrders(cursor):
 def getAllOrdersFiltertForUser(cursor, userRole, userId):
     query = """SELECT id
                FROM orders
-               WHERE {} = ?""".format(userRole)
+               WHERE {} = ?""".format(translateRoleToString(userRole, plural=False))
     cursor.execute(query, (userId,))
     orders = list()
     for order_id in cursor.fetchall():
