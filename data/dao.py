@@ -28,6 +28,36 @@ class DatabaseEntityDoesNotExist():
         return self._reference_id
 
 
+def getOverlord(cursor, row_id):
+    query = """SELECT id,
+                      email,
+                      surname,
+                      familyname,
+                      plz,
+                      street,
+                      streetno,
+                      tel,
+                      longitude,
+                      latitude
+                FROM Overlords AS O JOIN Users AS U ON O.user_id = U.id
+                WHERE id = ?"""
+    cursor.execute(query,(row_id,))
+    overlord = cursor.fetchone()
+    if overlord is None:
+        raise DatabaseEntityDoesNotExist("Overlord", row_id)
+    else:
+        return Overlord(overlord[0],
+                        overlord[1],
+                        overlord[2],
+                        overlord[3],
+                        overlord[4],
+                        overlord[5],
+                        overlord[6],
+                        overlord[7],
+                        overlord[8],
+                        overlord[9])
+
+
 def getPatient(cursor, row_id):
     query = """SELECT id,
                       email,
@@ -88,7 +118,7 @@ def getDoctor(cursor, row_id):
                       doctor[9])
 
 
-def get_doctor(cursor, row_id):
+def getPharmacy(cursor, row_id):
     query = """SELECT id,
                       email,
                       surname,
@@ -215,28 +245,46 @@ def checkIfRole(cursor, role, id):
     False if cursor.fetchone() == None else True
 
 
+def getRegisteredUserById(cursor, id):
+    role = getRole(cursor, id)
+    if role == Role.PATIENT:
+        return getPatient(cursor, id)
+    elif role == Role.PHARMACY:
+        return getPharmacy(cursor, id)
+    elif role == Role.DOCTOR:
+        return getDoctor(cursor, id)
+    elif role == Role.DRIVER:
+        return getDriver(cursor, id)
+    elif role == Role.OVERLORD:
+        return getOverlord(cursor, id)
+    else:
+        raise Exception("WTF?")
+
+
 def getRole(cursor, id):
     if check_if_role(cursor, 'Patient', id):
-        return Role.Patient
+        return Role.PATIENT
     elif check_if_role(cursor, 'Doctor', id):
-        return Role.Doctor
+        return Role.DOCTOR
     elif check_if_role(cursor, 'Pharmacy', id):
-        return Role.Pharmacy
+        return Role.PHARMACY
     elif check_if_role(cursor, 'Driver', id):
-        return Role.Driver
+        return Role.DRIVER
+    elif check_if_role(cursor, 'Overlord', id):
+        return Role.OVERLORD
     else:
         raise InvalidRoleException('User {:1!l} has an invalid role!'.format(username))
 
 
 # Checks whether the username and password combination identifies a known user
 def checkLogin(cursor, email, password):
-    cursor.execute('SELECT pwd
+    cursor.execute('SELECT pwd, id
                     FROM users
                     WHERE email = ?', (email,))
     pwhash = cursor.fetchone()
     if not pwhash:
         return False
-    return check_password_hash(pwhash[0], password)
+    return check_password_hash(pwhash[0], password), pwhash[1]
 
 
 def insertOrder(cursor):
@@ -337,6 +385,17 @@ def getAllPharmacies(cursor):
 def getAllOrders(cursor):
     query = "SELECT id FROM orders"
     cursor.execute(query)
+    orders = list()
+    for order_id in cursor.fetchall():
+        orders.append(getOrder(cursor, order_id[0]))
+    return orders
+
+
+def getAllOrdersFiltertForUser(cursor, userRole, userId):
+    query = "SELECT id
+             FROM orders
+             WHERE {} = ?".format(userRole)
+    cursor.execute(query, (userId,))
     orders = list()
     for order_id in cursor.fetchall():
         orders.append(getOrder(cursor, order_id[0]))
