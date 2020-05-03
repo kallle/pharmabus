@@ -1,113 +1,138 @@
-DROP TABLE IF EXISTS drivers;
-DROP TABLE IF EXISTS patients;
-DROP TABLE IF EXISTS pharmacies;
-DROP TABLE IF EXISTS meds;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS order_contains;
-DROP TABLE IF EXISTS pharmacy_stores;
-DROP TABLE IF EXISTS users;
-
-
-CREATE TABLE drivers (
-       id               integer primary key,
-       Name             text,
-       range            integer,
-       addr_plz         integer,
-       addr_street      text,
-       addr_street_nr   integer,
-       koo_long         double,
-       koo_lat          double,
-       cooler_dim_x     integer,
-       cooler_dim_y     integer,
-       cooler_dim_z     integer,
-       storage_dim_x    integer,
-       storage_dim_y    integer,
-       storage_dim_z    integer
-);
-
-CREATE TABLE patients (
-       id               integer primary key,
-       Name             text,
-       addr_plz         integer,
-       addr_street      text,
-       addr_street_nr   integer,
-       koo_long         double,
-       koo_lat          double
-);
-
-
-CREATE TABLE pharmacies (
-       id               integer primary key,
-       Name             text,
-       addr_plz         integer,
-       addr_street      text,
-       addr_street_nr   integer,
-       koo_long         double,
-       koo_lat          double
-);
-
-
-CREATE TABLE meds (
-       id           integer primary key,
-       pzn          text,
-       product_name text,
-       ingredient   text,
-       supplier		text,
-       quantity     text,
-       dimension_x  integer,
-       dimension_y  integer,
-       dimension_z  integer,
-       requires_cooling integer,
-       requires_recipe integer
-);
-
-
-CREATE TABLE orders (
-       id           integer primary key,
-       status       text,
-       given_by     patient,
-       driven_by    integer,
-       FOREIGN KEY (given_by)
-       REFERENCES patients(id),
-       FOREIGN KEY (driven_by)
-       REFERENCES drivers (id)
-);
-
-
-CREATE TABLE order_contains (
-       order_id             integer,
-       med_id               integer,
-       served_by            integer,
-       amount               integer,
-       recipe_with_customer integer,
-       PRIMARY KEY (order_id, med_id),
-       FOREIGN KEY (order_id)
-       REFERENCES orders (id),
-       FOREIGN KEY (med_id)
-       REFERENCES meds (id),
-       FOREIGN KEY (served_by)
-       REFERENCES pharmacies (id)
-);
-
-
-CREATE TABLE pharmacy_stores (
-       pharmacy_id  integer,
-       med_id       integer,
-       amount       integer,
-       PRIMARY KEY (pharmacy_id, med_id),
-       FOREIGN KEY (pharmacy_id)
-       REFERENCES pharmacies(id),
-       FOREIGN KEY (med_id)
-       REFERENCES meds (id)
-);
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS Patients;
+DROP TABLE IF EXISTS Pharmacies;
+DROP TABLE IF EXISTS Doctors;
+DROP TABLE IF EXISTS Patients;
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Prescriptions;
+DROP TABLE IF EXISTS Order_Status;
+DROP TABLE IF EXISTS Prescription_Status;
+DROP TABLE IF EXISTS Routes;
+DROP TABLE IF EXISTS Stops;
+DROP TABLE IF EXISTS Stop_Types;
 
 
 CREATE TABLE Users (
        id          integer primary key,
-       username    text,
        pwd         text,
-       driver_id   integer,
-       pharmacy_id integer,
-       patient_id  integer
+       surname     text,
+       familyname  text,
+       plz         text,
+       street      text,
+       streetno    integer,
+       longitude   double,
+       latitude    double
 );
 
+
+CREATE TABLE Patients (
+       user_id        integer,
+       FOREIGN KEY (user_id)
+       REFERENCES Users(id)
+);
+
+
+CREATE TABLE Doctors (
+       user_id        integer,
+       FOREIGN KEY (user_id)
+       REFERENCES Users(id)
+);
+
+
+CREATE TABLE Pharamacies (
+       name           text,
+       user_id        integer,
+       FOREIGN KEY (user_id)
+       REFERENCES Users(id)
+);
+
+
+CREATE TABLE Order_Status (
+       name         text PRIMARY KEY,
+);
+
+
+INSERT INTO Order_Status (name)
+VALUES ('at_patient'),
+       ('at_doctor'),
+       ('at_pharmacy'),
+       ('at_driver'),
+       ('delivered');
+
+
+CREATE TABLE Prescription_Status (
+       name         text PRIMARY KEY,
+);
+
+
+INSERT INTO Prescription_Status (name)
+VALUES ('at_patient'),
+       ('at_doctor');
+
+
+CREATE TABLE Prescriptions (
+       id                  integer PRIMARY KEY,
+       status              text,
+       scan                blob,
+       FOREIGN KEY (status)
+       REFERENCES Prescription_Status(name)
+);
+
+
+CREATE TABLE Routes (
+       id           integer PRIMARY KEY
+);
+
+
+CREATE TABLE Stop_Types (
+       name            text
+);
+
+INSERT INTO Stop_Types (name)
+VALUES ('pick_up_recipe'),
+       ('pick_up_med'),
+       ('drop_off');
+
+
+CREATE TABLE Stops (
+       step_no     integer,
+       belogs_to   integer,
+       part_of     integer,
+       stop_type   text,
+       FOREIGN KEY (belongs_to)
+       REFERENCES Routes(id),
+       FOREIGN KEY (part_of)
+       REFERENCES Orders(id)
+       FOREIGN KEY (stop_type)
+       REFERENCES Stop_Types (name)
+);
+
+
+CREATE TABLE Orders (
+       id           integer PRIMARY KEY,
+       title        text,
+       status       text,
+       presription  integer,
+       patient      integer,
+       doctor       integer,
+       pharmacy     integer,
+       FOREIGN KEY (status)
+       REFERENCES Order_Status(name),
+       FOREIGN KEY (prescription)
+       REFERENCES Presciptions(id),
+       FOREIGN KEY  (patient)
+       REFERENCES Patients(id),
+       FOREIGN KEY  (doctor)
+       REFERENCES Doctors(id),
+       FOREIGN KEY  (pharmacy)
+       REFERENCES Pharmacies(id)
+);
+
+CREATE TABLE Drivers (
+       user_id        integer,
+       current_route  integer,
+       FOREIGN KEY (user_id)
+       REFERENCES Users(id),
+       FOREIGN KEY (current_route)
+       REFERENCES Routes(id)
+);
