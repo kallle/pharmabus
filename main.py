@@ -7,11 +7,11 @@ from flask import g
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
-from data import dao
 from data.dao import getRegisteredUserById, getOverlord, getPatient, getDoctor, getPharmacy, getDriver,\
     registerPatient, registerDoctor, registerPharmacy, registerDriver
 from data.dao import getAllDrivers, getAllPharmacies, getAllOrders
-from data.dao import checkLogin, insertOrder, addPrescriptionToOrder
+from data.dao import checkLogin, getRole
+from data.dao import insertOrder, addPrescriptionToOrder
 from helper import make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates, Coordinates
@@ -44,9 +44,10 @@ def close_db(e=None):
 def check_my_users(user):
     conn = get_db()
     cursor = conn.cursor()
-    email = user['email']
+    email = user['username']
     password = user['password']
-    success, user_id = dao.checkLogin(cursor, email, password)
+    print('test')
+    success = checkLogin(cursor, email, password)
     if success:
         return True
     else:
@@ -59,7 +60,7 @@ def is_logged_in_as_overlord():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == settings.OVERLORD
+    return getRole(cursor, user_id)  == Role.OVERLORD
 
 
 def is_logged_in_as_pharmacy():
@@ -68,7 +69,7 @@ def is_logged_in_as_pharmacy():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == settings.PHARMACY
+    return getRole(cursor, user_id)  == Role.PHARMACY
 
 
 def is_logged_in_as_driver():
@@ -77,7 +78,7 @@ def is_logged_in_as_driver():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == settings.DRIVER
+    return getRole(cursor, user_id)  == Role.DRIVER
 
 
 def is_logged_in_as_patient():
@@ -86,7 +87,7 @@ def is_logged_in_as_patient():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == settings.PATIENT
+    return getRole(cursor, user_id)  == Role.PATIENT
 
 
 def is_logged_in_as_doctor():
@@ -95,7 +96,7 @@ def is_logged_in_as_doctor():
     if not is_logged_in():
         return False
     user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == settings.DOCTOR
+    return getRole(cursor, user_id)  == Role.DOCTOR
 
 
 app = Flask(__name__)
@@ -149,7 +150,7 @@ def register_pharmacy():
         latitude = flask.request.values.get('latitude')
         name  = flask.request.values.get('name')
         conn = get_db()
-        c = conn.cursor()
+        cursor = conn.cursor()
         registerPharmacy(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, name)
         conn.commit()
         flash("Registrierung erfolgreich")
@@ -172,8 +173,8 @@ def register_patient():
         longitude = flask.request.values.get('longitude')
         latitude = flask.request.values.get('latitude')
         conn = get_db()
-        c = conn.cursor()
-        registerPatient(c, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        cursor = conn.cursor()
+        registerPatient(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
@@ -196,8 +197,8 @@ def register_driver():
         latitude = flask.request.values.get('latitude')
         max_range = flask.request.values.get('max_range')
         conn = get_db()
-        c = conn.cursor()
-        registerDriver(c, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, max_range)
+        cursor = conn.cursor()
+        registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, max_range)
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
@@ -206,7 +207,7 @@ def register_driver():
 
 
 @app.route('/register_doctor', methods=['GET', 'POST'])
-def register_driver():
+def register_doctor():
     if flask.request.method == 'POST':
         email = flask.request.values.get('email')
         pwd = flask.request.values.get('password')
@@ -219,8 +220,8 @@ def register_driver():
         longitude = flask.request.values.get('longitude')
         latitude = flask.request.values.get('latitude')
         conn = get_db()
-        c = conn.cursor()
-        registerDriver(c, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        cursor = conn.cursor()
+        registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
         conn.commit()
         flash("Registrierung erfolgreich")
         return render_template('index.html')
@@ -232,7 +233,7 @@ def not_empty(item):
     return item != ''
 
 @app.route('/submit_order', methods=['GET', 'POST'])
-@login_required(must=[is_patient])
+@login_required(must=[is_logged_in_as_patient])
 def submit_order():
     if flask.request.method == 'POST':
         handelsname = flask.request.form.getlist('handelsname')
@@ -252,36 +253,6 @@ def submit_order():
         return render_template('index.html')
     else:
         return render_template("submit_order.html")
-
-
-
-
-@app.route('/upload_stock', methods=['GET', 'POST'])
-@login_required(must=[is_pharmacy])
-def upload_stock():
-    if flask.request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('Keine Datei ausgewählt')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('Keine Datei ausgewählt')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            data = process_uploaded_csv_file(file.stream)
-            stock = read_stock(data)
-            conn = get_db()
-            c = conn.cursor()
-            pharmacy_id = get_pharmacy_id(c, get_username())
-            process_stock(c, pharmacy_id, stock)
-            conn.commit()
-            flash('Bestand erfolgreich aktualisiert')
-        return render_template('index.html')
-    else:
-        return render_template("upload_stock.html")
 
 
 def start_calculation():
@@ -310,7 +281,7 @@ def start_calculation():
 
 # test
 @app.route('/calculate_routes', methods=['GET', 'POST'])
-@login_required(must=[is_overlord])
+@login_required(must=[is_logged_in_as_overlord])
 def calculate_routes():
     if flask.request.method == 'POST':
         conn = get_db()
