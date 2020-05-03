@@ -1,8 +1,10 @@
-# TODO: Add medication storage
-class Pharmacy:
+from models.coordinates import Coordinates
+from models.user import User
+
+class Pharmacy(User):
 
     def __init__(self, id, email, surname, familyname, plz, street, streetno, tel, longitude, latitude, name):
-        super().__init__(id, surname, familyname, plz, street, streetno, longitude, latitude)
+        super().__init__(id, email, surname, familyname, plz, street, streetno, tel, longitude, latitude)
         self._name = name
 
     @property
