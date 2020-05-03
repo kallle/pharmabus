@@ -150,6 +150,10 @@ def getPharmacy(cursor, row_id):
                         pharmacy[10])
 
 
+def getRoute(cursor, routeId):
+    return Route([])
+
+
 def getDriver(cursor, row_id):
     query = """SELECT id,
                       email,
@@ -161,7 +165,8 @@ def getDriver(cursor, row_id):
                       tel,
                       longitude,
                       latitude,
-                      max_range
+                      max_range,
+                      current_route
                 FROM Drivers AS D JOIN Users AS U ON D.user_id = U.id
                 WHERE id = ?"""
     cursor.execute(query,(row_id,))
@@ -179,12 +184,13 @@ def getDriver(cursor, row_id):
                       driver[7],
                       driver[8],
                       driver[9],
-                      driver[10])
+                      driver[10],
+                      getRoute(cursor, driver[11]) if driver[11] is not None else None)
 
 
 # this is an internal function and should never be used outside of this file!
 def registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude):
-    salted = generated_password_hash(pwd)
+    salted = generate_password_hash(pwd)
     query = """INSERT INTO Users(email,
                                  pwd,
                                  surname,
@@ -196,52 +202,61 @@ def registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno,
                                  longitude,
                                  latitude)
                VALUES (?,?,?,?,?,?,?,?,?,?)"""
-    cursor.execute(query,(email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude))
+    cursor.execute(query,(email, salted, surname, familyname, plz, street, streetno, tel, longitude, latitude))
     return cursor.lastrowid
 
 
 def registerPatient(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude):
-    row_id = register_user(cursor, email,pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    row_id = registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
     query = """INSERT INTO Patients (user_id)
                VALUES (?)"""
     cursor.execute(query, (row_id,))
-    return get_patient(cursor, row_id)
+    return getPatient(cursor, row_id)
 
 
 def registerDoctor(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude):
-    row_id = register_user(cursor, email,pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    row_id = registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
     query = """INSERT INTO Doctors (user_id)
                VALUES (?)"""
     cursor.execute(query, (row_id,))
-    return get_doctor(cursor, row_id)
+    return getDoctor(cursor, row_id)
 
 
 def registerPharmacy(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, name):
-    row_id = register_user(cursor, email,pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    row_id = registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
     query = """INSERT INTO Pharmacies(user_id,
                                       name)
                VALUES (?,?)"""
     cursor.execute(query, (row_id, name))
-    return get_pharmacy(cursor, row_id)
+    return getPharmacy(cursor, row_id)
 
 
 def registerDriver(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude, max_range):
-    row_id = register_user(cursor, email,pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    row_id = registerUser(cursor, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
     query = """INSERT INTO Drivers(user_id,
                                    max_range)
                VALUES (?,?)"""
     cursor.execute(query, (row_id, max_range))
-    return get_driver(cursor, row_id)
+    return getDriver(cursor, row_id)
 
 
 def checkIfRole(cursor, role, id):
-    assert role in ['Doctor', 'Patient', 'Pharmacy', 'Driver']
-    if role == "Pharmacy":
+    assert role in [Role.PATIENT, Role.PHARMACY, Role.DOCTOR, Role.OVERLORD, Role.DRIVER]
+    if role == Role.PHARMACY:
         role = "Pharmacies"
+    elif role == Role.DOCTOR:
+        role = "Doctors"
+    elif role == Role.PATIENT:
+        role = "Patients"
+    elif role == Role.DRIVER:
+        role = "Drivers"
+    elif role == Role.OVERLORD:
+        role = "Overlords"
     else:
-        role += "s"
-    query = "SELECT FROM {} WHERE user_id = ?".format(role)
-    curser.execute(query,(id,))
+        raise Exception("WTF")
+    query = "SELECT True FROM {} WHERE user_id = ?".format(role)
+    print(query)
+    cursor.execute(query,(id,))
     False if cursor.fetchone() == None else True
 
 
@@ -262,25 +277,27 @@ def getRegisteredUserById(cursor, id):
 
 
 def getRole(cursor, id):
-    if check_if_role(cursor, 'Patient', id):
+    if id is None:
+        return Role.NONE
+    elif checkIfRole(cursor, Role.PATIENT, id):
         return Role.PATIENT
-    elif check_if_role(cursor, 'Doctor', id):
+    elif checkIfRole(cursor, Role.DOCTOR, id):
         return Role.DOCTOR
-    elif check_if_role(cursor, 'Pharmacy', id):
+    elif checkIfRole(cursor, Role.PHARMACY, id):
         return Role.PHARMACY
-    elif check_if_role(cursor, 'Driver', id):
+    elif checkIfRole(cursor, Role.DRIVER, id):
         return Role.DRIVER
-    elif check_if_role(cursor, 'Overlord', id):
+    elif checkIfRole(cursor, Role.OVERLORD, id):
         return Role.OVERLORD
     else:
-        raise InvalidRoleException('User {:1!l} has an invalid role!'.format(username))
+        raise InvalidRoleException('User {} has an invalid role!'.format(id))
 
 
 # Checks whether the username and password combination identifies a known user
 def checkLogin(cursor, email, password):
-    cursor.execute('SELECT pwd, id
-                    FROM users
-                    WHERE email = ?', (email,))
+    cursor.execute("""SELECT pwd, id
+                      FROM users
+                      WHERE email = ?""", (email,))
     pwhash = cursor.fetchone()
     if not pwhash:
         return False
@@ -288,8 +305,8 @@ def checkLogin(cursor, email, password):
 
 
 def insertOrder(cursor):
-    query = "INSERT INTO Orders(status)
-             VALUES (?)"
+    query = """INSERT INTO Orders(status)
+               VALUES (?)"""
     cursor.execute(query,(OrderStatus.AT_PATIENT,))
     rowId = cursor.lastrowid
     return getOrder(cursor, row_id)
@@ -314,8 +331,8 @@ def getPrescription(cursor, rowId):
 
 # this function must never be used outside of this file
 def insertPrescription(cursor, status, scan):
-    query = "INSERT INTO Prescriptions(status, scan)
-             VALUES(?,?)"""
+    query = """INSERT INTO Prescriptions(status, scan)
+               VALUES(?,?)"""
     cursor.execute(query, (status, scan))
     rowId = cursor.lastrowid
     return getPrescription(cursor, rowId)
@@ -323,8 +340,8 @@ def insertPrescription(cursor, status, scan):
 
 # this function must never be used outside of this file
 def deletePrescription(cursor, id):
-    cursor.execute("DELETE FROM Prescriptions
-                    WHERE id = ?",(id,))
+    cursor.execute("""DELETE FROM Prescriptions
+                      WHERE id = ?""",(id,))
 
 
 class OrderAlreadyHasPrescription(Exception):
@@ -333,9 +350,9 @@ class OrderAlreadyHasPrescription(Exception):
 
 # this function must never be used outside of this file
 def updateOrderStatus(cursor, order, order_status):
-    query = "UPDATE Orders
-             SET status = ?
-             WHERE id = ?"
+    query = """UPDATE Orders
+               SET status = ?
+               WHERE id = ?"""
     cursor.execute(query,(order_status, order_id))
     order._status = order_status
     return order
@@ -348,9 +365,9 @@ def addPrescriptionToOrder(cursor, order, status, scan=None, supersede=False):
     else:
         deletePrescription(cusor, order.prescription.id)
     prescription = insertPrescription(cursor, status, scan)
-    query = "UPDATE Orders
-             SET prescription = ?
-             WHERE id = ?"
+    query = """UPDATE Orders
+               SET prescription = ?
+               WHERE id = ?"""
     if scan: # if we have the scan the order is now the pharmacies job
         order = updateOrderStatus(cursor, OrderStatus.AT_PHARMACY)
     elif status == PrescriptionStatus.PRESENT_AT_DOCTOR:
@@ -365,7 +382,7 @@ def addPrescriptionToOrder(cursor, order, status, scan=None, supersede=False):
 
 # Retrieves all drivers known to the system
 def getAllDrivers(cursor):
-    query = "SELECT user_id FROM Drivers"
+    query = """SELECT user_id FROM Drivers"""
     cursor.execute(query)
     drivers = list()
     for driver_id in cursor.fetchall():
@@ -392,9 +409,9 @@ def getAllOrders(cursor):
 
 
 def getAllOrdersFiltertForUser(cursor, userRole, userId):
-    query = "SELECT id
-             FROM orders
-             WHERE {} = ?".format(userRole)
+    query = """SELECT id
+               FROM orders
+               WHERE {} = ?""".format(userRole)
     cursor.execute(query, (userId,))
     orders = list()
     for order_id in cursor.fetchall():
