@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Register Doctor{% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('register_doctor') }}" method="post">
+  <div class="form-group">
+    <label for="email">email</label>
+    <input name="email" id="email" required>
+    <br/>
+    <label for="password">Passwort</label>
+    <input type="password" name="password" id="password" required>
+    <br/>
+    <label for="postleitzahl">PLZ</label>
+    <input name="postleitzahl" id="postleitzahl" required>
+    <br/>
+    <label for="street">Straße</label>
+    <input name="street" id="street" required>
+    <br/>
+    <label for="number">Hausnummer</label>
+    <input name="number" id="number" required>
+    <br/>
+    <label for="tel">Telefonnummer</label>
+    <input name="tel" id="tel" required>
+    <br/>
+    <label for="latitude">Latitude</label>
+    <input name="latitude" id="latitude" required>
+    <br/>
+    <label for="longitude">Longitude</label>
+    <input name="longitude" id="longitude" required>
+    <br/>
+    <input type="submit" value="Registrieren">
+  </div>
+</form>
+{% endblock %}
