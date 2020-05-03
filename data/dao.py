@@ -255,9 +255,10 @@ def checkIfRole(cursor, role, id):
     else:
         raise Exception("WTF")
     query = "SELECT True FROM {} WHERE user_id = ?".format(role)
-    print(query)
-    cursor.execute(query,(id,))
-    False if cursor.fetchone() == None else True
+    cursor.execute(query, (id,))
+    res = cursor.fetchone()
+    ret = False if res == None else True
+    return ret
 
 
 def getRegisteredUserById(cursor, id):
