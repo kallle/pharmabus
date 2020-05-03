@@ -1,11 +1,11 @@
 from enum import Enum
 
 class Role(Enum):
-    DOCTOR= 0
-    PATIENT = 1
-    PHARMACY = 2
-    DRIVER = 3
-    OVERLORD = 4
+    DOCTOR= "Doctor"
+    PATIENT = "Patient"
+    PHARMACY = "Pharmacy"
+    DRIVER = "Driver"
+    OVERLORD = "Overlord"
 
 
 class InvalidRoleException(Exception):
