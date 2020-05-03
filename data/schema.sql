@@ -10,11 +10,12 @@ DROP TABLE IF EXISTS Prescription_Status;
 DROP TABLE IF EXISTS Routes;
 DROP TABLE IF EXISTS Stops;
 DROP TABLE IF EXISTS Stop_Types;
+DROP TABLE IF EXISTS Overlords;
 
 
 CREATE TABLE Users (
        id          integer primary key,
-       email       text,
+       email       text UNIQUE,
        pwd         text,
        surname     text,
        familyname  text,
@@ -23,6 +24,13 @@ CREATE TABLE Users (
        streetno    integer,
        longitude   double,
        latitude    double
+);
+
+
+CREATE TABLE Overlords (
+       user_id         integer,
+       FOREIGN KEY (user_id)
+       REFERENCES Users(id)
 );
 
 
