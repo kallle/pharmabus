@@ -1,6 +1,6 @@
 class Driver:
-    def __init__(self, id, pwd, surname, familyname, plz, street, streetno, longitude, latitude, max_range, current_route):
-        super().__init__(id, pwd, surname, familyname, plz, street, streetno, longitude, latitude)
+    def __init__(self, id, email, surname, familyname, plz, street, streetno, longitude, latitude, max_range, current_route):
+        super().__init__(id, email, surname, familyname, plz, street, streetno, longitude, latitude)
         self._max_range = max_range
         self._current_route = current_route
 
