@@ -205,6 +205,29 @@ def register_driver():
         return render_template("register_driver.html")
 
 
+@app.route('/register_doctor', methods=['GET', 'POST'])
+def register_driver():
+    if flask.request.method == 'POST':
+        email = flask.request.values.get('email')
+        pwd = flask.request.values.get('password')
+        surname = flask.request.values.get('vorname_besitzer')
+        familyname = flask.request.values.get('nachname_besitzer')
+        plz = flask.request.values.get('postleitzahl')
+        street = flask.request.values.get('street')
+        streetno = flask.request.values.get('number')
+        tel = flask.request.values.get('telefonnummer')
+        longitude = flask.request.values.get('longitude')
+        latitude = flask.request.values.get('latitude')
+        conn = get_db()
+        c = conn.cursor()
+        registerDriver(c, email, pwd, surname, familyname, plz, street, streetno, tel, longitude, latitude)
+        conn.commit()
+        flash("Registrierung erfolgreich")
+        return render_template('index.html')
+    else:
+        return render_template("register_driver.html")
+
+
 def not_empty(item):
     return item != ''
 
