@@ -8,8 +8,8 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 
 import settings
 from data.dao import getRegisteredUserById, getOverlord, getPatient, getDoctor, getPharmacy, getDriver,\
-    registerPatient, registerDoctor, registerPharmacy, registerDriver
-from data.dao import getAllDrivers, getAllPharmacies, getAllOrders
+    registerPatient, registerDoctor, registerPharmacy, registerDriver, getUserId
+from data.dao import getAllDrivers, getAllPharmacies, getAllOrders, getAllOrdersFiltertForUser
 from data.dao import checkLogin, getRole
 from data.dao import insertOrder, addPrescriptionToOrder
 from helper import make_fake_route
@@ -55,41 +55,42 @@ def check_my_users(user):
         return False
 
 
-def is_logged_in_as_overlord():
+def is_logged_in_as_overlord(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = session.get('simple_user_id')
+    user_id = getUserId(cursor, username)
     return getRole(cursor, user_id)  == Role.OVERLORD
 
 
-def is_logged_in_as_pharmacy():
+def is_logged_in_as_pharmacy(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = session.get('simple_user_id')
+    user_id = getUserid(cursor, username)
     return getRole(cursor, user_id)  == Role.PHARMACY
 
 
-def is_logged_in_as_driver():
+def is_logged_in_as_driver(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = session.get('simple_user_id')
+    user_id = getUserId(cursor, username)
     return getRole(cursor, user_id)  == Role.DRIVER
 
 
-def is_logged_in_as_patient():
+def is_logged_in_as_patient(username):
+    print(username)
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = session.get('simple_user_id')
-    print(user_id)
-    return getRole(cursor, user_id)  == Role.PATIENT
+    user_id = getUserId(cursor, username)
+    print(getRole(cursor, user_id))
+    return getRole(cursor, user_id) == Role.PATIENT
 
 
 def is_logged_in_as_doctor():
@@ -97,8 +98,8 @@ def is_logged_in_as_doctor():
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = session.get('simple_user_id')
-    return getRole(cursor, user_id)  == Role.DOCTOR
+    user_id = getUserId(cursor, username)
+    return getRole(cursor, user_id) == Role.DOCTOR
 
 
 app = Flask(__name__)
@@ -110,25 +111,28 @@ messages = {
     'logout': 'Ausgeloggt!',
     'login_required': 'Login Vorausgesetzt',
     'access_denied': 'Zugriff verweigert',
-    'auth_error': 'Authentifizierungsfehler： {0}'
+    'auth_error': 'Authentifizierungsfehler {0}'
 }
 SimpleLogin(app, messages=messages, login_checker=check_my_users)
 
 
 @app.route('/')
 def index():
-    user_id = session.get('simple_user_id')
-    if is_logged_in_as_patient():
+    conn = get_db()
+    cursor = conn.cursor()
+    username = session.get('simple_username')
+    user_id = getUserId(cursor, username)
+    if is_logged_in_as_patient(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.PATIENT, user_id)
         return render_template('orders.html', orders=orders)
-    elif is_logged_in_as_doctor():
+    elif is_logged_in_as_doctor(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.DOCTOR, user_id)
         return render_template('orders.html', orders=orders)
-    elif is_logged_in_as_doctor():
+    elif is_logged_in_as_doctor(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.PHARMACY, user_id)
@@ -234,30 +238,44 @@ def register_doctor():
         return render_template("register_driver.html")
 
 
-def not_empty(item):
-    return item != ''
-
-@app.route('/submit_order', methods=['GET', 'POST'])
+@app.route('/order_choose_doctor', methods=['GET', 'POST'])
 @login_required(must=[is_logged_in_as_patient])
-def submit_order():
+def order_choose_doctor():
     if flask.request.method == 'POST':
-        handelsname = flask.request.form.getlist('handelsname')
-        hersteller = flask.request.form.getlist('hersteller')
-        amount = flask.request.form.getlist('amount')
-        handelsname = filter(not_empty, handelsname)
-        hersteller = filter(not_empty, hersteller)
-        amount = filter(not_empty, amount)
-        order = list(zip(handelsname, hersteller, amount))
-        recipe_p = flask.request.values.get('rezept')
+        doctor_id = flask.request.form.get('doctor')
+        return render_template('order_choose_pharmacy.html', doctor_id=doctor_id)
+    else:
+        return render_template("order_choose_doctor.html")
+
+
+@app.route('/order_choose_pharmacy', methods=['GET', 'POST'])
+@login_required(must=[is_logged_in_as_patient])
+def order_choose_pharmacy():
+    if flask.request.method == 'POST':
+        doctor_id = flask.request.form.get('doctor_id')
+        pharmacy_id = flask.request.form.get('pharmacy')
+        return render_template('order_choose_pharmacy.html', doctor_id=doctor_id, pharmacy_id=pharmacy_id)
+    else:
+        return render_template("order_choose_doctor.html")
+
+
+@app.route('/order_upload_prescription', methods=['GET', 'POST'])
+@login_required(must=[is_logged_in_as_patient])
+def order_upload_prescription():
+    if flask.request.method == "POST":
+        doctor_id = flask.request.form.get('doctor_id')
+        pharmacy_id = flask.request.form.get('pharmacy_id')
+        prescription_location = flask.request.form.get('prescription_location')
+        status = PrescriptionStatus.PRESENT_AT_DOCTOR if flask.request.form.get('prescription_location') == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
+        scan = flask.request.form.get('scan')
         conn = get_db()
         c = conn.cursor()
-        patient_id = get_patient_id(c, get_username())
-        insert_order(c, patient_id, order, recipe_p)
-        conn.commit()
-        flash('Bestellung erfolgreich übermittelt')
+        order = insertOrder(cursor, session.get('simple_user_id'), doctor_id, pharmacy_id)
+        order = addPrescriptionToOrder(cursor, order, status, scan)
+        flash('Bestellung erfolgreich eingetragen')
         return render_template('index.html')
     else:
-        return render_template("submit_order.html")
+        return render_template('order_choose_doctor.html')
 
 
 def start_calculation():
