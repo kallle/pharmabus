@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS Routes;
 DROP TABLE IF EXISTS Stops;
 DROP TABLE IF EXISTS Stop_Types;
 DROP TABLE IF EXISTS Overlords;
+DROP TABLE IF EXISTS Drivers;
 
 
 CREATE TABLE Users (
@@ -23,7 +24,8 @@ CREATE TABLE Users (
        street      text,
        streetno    integer,
        longitude   double,
-       latitude    double
+       latitude    double,
+       tel         text
 );
 
 
@@ -48,7 +50,7 @@ CREATE TABLE Doctors (
 );
 
 
-CREATE TABLE Pharamacies (
+CREATE TABLE Pharmacies (
        name           text,
        user_id        integer,
        FOREIGN KEY (user_id)
@@ -57,7 +59,7 @@ CREATE TABLE Pharamacies (
 
 
 CREATE TABLE Order_Status (
-       name         text PRIMARY KEY,
+       name         text PRIMARY KEY
 );
 
 
@@ -70,7 +72,7 @@ VALUES ('at_patient'),
 
 
 CREATE TABLE Prescription_Status (
-       name         text PRIMARY KEY,
+       name         text PRIMARY KEY
 );
 
 
@@ -105,7 +107,7 @@ VALUES ('pick_up_recipe'),
 
 CREATE TABLE Stops (
        step_no     integer,
-       belogs_to   integer,
+       belongs_to   integer,
        part_of     integer,
        stop_type   text,
        FOREIGN KEY (belongs_to)
@@ -120,7 +122,7 @@ CREATE TABLE Stops (
 CREATE TABLE Orders (
        id           integer PRIMARY KEY,
        status       text,
-       presription  integer,
+       prescription  integer,
        patient      integer,
        doctor       integer,
        pharmacy     integer,
@@ -139,6 +141,7 @@ CREATE TABLE Orders (
 CREATE TABLE Drivers (
        user_id        integer,
        current_route  integer,
+       max_range      integer,
        FOREIGN KEY (user_id)
        REFERENCES Users(id),
        FOREIGN KEY (current_route)
