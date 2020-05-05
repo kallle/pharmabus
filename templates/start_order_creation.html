@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Order Rezept (1/3){% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('start_order_creation') }}" method="post">
+  <div class="form-group">
+    <label for="prescription_location">Rezept liegt bei</label> <br>
+    <fieldset id="prescription_location">
+      <label>behandelndem Arzt</label> <input type="radio" value="doctor" name="prescription_location">
+      <label>Patient</label> <input type="radio" value="patient" name="prescription_location">
+    </fieldset>
+    <label for="scan">Scan Upload</label>
+    <input type="file" name="scan">
+    <input type="submit" value="weiter">
+  </div>
+</form>
+{% endblock %}

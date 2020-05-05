@@ -66,6 +66,7 @@ class Order:
     def __repr__(self):
         return ('Order(id={self._id!r}, '
                 'patient={self._patient!r}, '
-                'medications={self._medications!r}, '
+                'pharmacy={self._pharmacy!r} '
+                'doctor={self._doctor!r}, '
                 ).format(self=self)
 

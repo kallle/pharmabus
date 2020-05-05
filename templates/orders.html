@@ -11,11 +11,7 @@
     <ul>
         {% for order in orders %}
         <li>BestellNr.: {{order.id}} Status: {{ template_translate_order_status(order.status) }}
-            <ul>
-            {% for (med,amount) in order.medications %}
-            <li>{{med.name}} ({{med.supplier}}) - {{amount}}</li>
-            {% endfor %}
-            </ul>
+          <a href='/cancel_order?order_id={{ order.id }}'>Cancel</a>
         </li>
         {% endfor %}
     </ul>

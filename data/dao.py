@@ -365,6 +365,15 @@ def insertOrder(cursor, patient, doctor, pharmacy, prescription=None):
     return getOrder(cursor, rowId)
 
 
+def deleteOrder(cursor, order):
+    if order.prescription is not None:
+        deletePrescription(cursor, order.prescription)
+    print('deleting order {}'.format(order))
+    query = """DELETE FROM Orders
+               WHERE id = ?"""
+    cursor.execute(query,(order.id,))
+
+
 # this function must never be used outside of this file
 def getPrescription(cursor, rowId):
     query = """SELECT id,
@@ -391,10 +400,11 @@ def insertPrescription(cursor, status, scan):
     return getPrescription(cursor, rowId)
 
 
-# this function must never be used outside of this file
-def deletePrescription(cursor, id):
-    cursor.execute("""DELETE FROM Prescriptions
-                      WHERE id = ?""",(id,))
+def deletePrescription(cursor, prescription):
+    query = """DELETE FROM Prescriptions
+               WHERE id = ?"""
+    print('pres: {}'.format(prescription))
+    cursor.execute(query, (prescription.id,))
 
 
 class OrderAlreadyHasPrescription(Exception):

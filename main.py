@@ -11,7 +11,7 @@ from data.dao import getRegisteredUserById, getOverlord, getPatient, getDoctor, 
     registerPatient, registerDoctor, registerPharmacy, registerDriver, getUserId
 from data.dao import getAllDrivers, getAllPharmacies, getAllOrders, getAllOrdersFiltertForUser
 from data.dao import checkLogin, getRole
-from data.dao import insertOrder, addPrescriptionToOrder
+from data.dao import insertOrder, addPrescriptionToOrder, deleteOrder, getOrder
 from helper import make_fake_route
 from models.address import Address
 from models.coordinates import get_default_coordinates, Coordinates
@@ -328,6 +328,25 @@ def order_upload_prescription():
         return render_template('index.html')
     else:
         return render_template('order_choose_doctor.html')
+
+
+@app.route('/cancel_order', methods=['GET'])
+@login_required(must=[is_logged_in_as_patient])
+def cancel_order():
+    conn = get_db()
+    cursor = conn.cursor()
+    order_id = flask.request.args.get('order_id')
+    if not order_id:
+        raise Exception("Order Id expected for cancellation")
+    order = getOrder(cursor, order_id)
+    patient = getPatient(cursor, session.get('simple_user_id'))
+    if patient.id != order.patient.id:
+        raise Exception("Only the order owning patient can cancel")
+    else:
+        deleteOrder(cursor, order)
+        conn.commit()
+    flash('Bestellung erfolgreich gecancelt')
+    return render_template('index.html')
 
 
 def start_calculation():
