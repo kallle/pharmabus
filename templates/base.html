@@ -24,12 +24,12 @@
           <li class="nav-item active">
             <a class="nav-link" href="/">Übersicht</a>
           </li>
-            {% if is_logged_in_as_overlord(get_username()) %}
+            {% if is_overlord(get_username()) %}
             <li class="nav-item">
                 <a class="nav-link" href="{{url_for('calculate_routes')}}">Routen Berechnen!</a>
             </li>
             {% endif %}
-            {% if is_logged_in_as_patient(get_username()) %}
+            {% if is_patient(get_username()) %}
             <li class="nav-item">
                 <a class="nav-link" href="{{url_for('order_choose_doctor')}}">Bestellung aufgeben</a>
             </li>
