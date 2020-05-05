@@ -10,7 +10,9 @@ from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.role import Role, InvalidRoleException
 from models.order_status import OrderStatus
+from models.prescription_status import PrescriptionStatus
 from models.stock import Stock
+from models.prescription import Prescription
 
 
 class DatabaseEntityDoesNotExist():
@@ -345,9 +347,9 @@ def getOrder(cursor, row_id):
     ret = cursor.fetchone()
     if ret is None:
         raise DatabaseEntityDoesNotExist("Order", row_id)
-    id,status,prescription,patient,doctor,pharmacy = ret
+    id, status, prescription, patient, doctor, pharmacy = ret
     return Order(id,
-                 OrderStatus.get(status),
+                 OrderStatus.fromString(status),
                  getPrescription(cursor, prescription) if prescription else None,
                  patient,
                  doctor,
@@ -355,11 +357,11 @@ def getOrder(cursor, row_id):
 
 
 def insertOrder(cursor, patient, doctor, pharmacy, prescription=None):
-    query = """INSERT INTO Orders(status, patient, doctor, pharamcy, prescription)
-               VALUES (?)"""
-    cursor.execute(query,(OrderStatus.AT_PATIENT,))
+    query = """INSERT INTO Orders(status, patient, doctor, pharmacy)
+               VALUES (?,?,?,?)"""
+    cursor.execute(query,(OrderStatus.toString(OrderStatus.AT_PATIENT), patient, doctor, pharmacy))
     rowId = cursor.lastrowid
-    return getOrder(cursor, row_id)
+    return getOrder(cursor, rowId)
 
 
 # this function must never be used outside of this file
@@ -368,14 +370,14 @@ def getPrescription(cursor, rowId):
                       status,
                       scan
                FROM Prescriptions
-               WHERE row_id = ?"""
+               WHERE id = ?"""
     cursor.execute(query,(rowId,))
     prescription = cursor.fetchone()
     if prescription is None:
         DatabaseEntityDoesNotExist("Prescription", rowId)
     else:
         return Prescription(prescription[0],
-                            prescription[1],
+                            PrescriptionStatus.fromString(prescription[1]),
                             prescription[2])
 
 
@@ -383,7 +385,7 @@ def getPrescription(cursor, rowId):
 def insertPrescription(cursor, status, scan):
     query = """INSERT INTO Prescriptions(status, scan)
                VALUES(?,?)"""
-    cursor.execute(query, (status, scan))
+    cursor.execute(query, (PrescriptionStatus.toString(status), scan))
     rowId = cursor.lastrowid
     return getPrescription(cursor, rowId)
 
@@ -403,29 +405,31 @@ def updateOrderStatus(cursor, order, order_status):
     query = """UPDATE Orders
                SET status = ?
                WHERE id = ?"""
-    cursor.execute(query,(order_status, order_id))
+    cursor.execute(query,(OrderStatus.toString(order_status), order.id))
     order._status = order_status
     return order
 
 
 def addPrescriptionToOrder(cursor, order, status, scan=None, supersede=False):
     assert status in [PrescriptionStatus.PRESENT_AT_DOCTOR, PrescriptionStatus.PRESENT_AT_PATIENT]
-    if order.prescription is not None and not supersede:
-        raise OrderAlreadyHasPrescription()
-    else:
-        deletePrescription(cusor, order.prescription.id)
+    prescription = order.prescription
+    if (prescription is not None):
+        if not supersede:
+            raise OrderAlreadyHasPrescription()
+        else:
+            deletePrescription(cursor, order.prescription.id)
     prescription = insertPrescription(cursor, status, scan)
     query = """UPDATE Orders
                SET prescription = ?
                WHERE id = ?"""
     if scan: # if we have the scan the order is now the pharmacies job
-        order = updateOrderStatus(cursor, OrderStatus.AT_PHARMACY)
+        order = updateOrderStatus(cursor, order, OrderStatus.AT_PHARMACY)
     elif status == PrescriptionStatus.PRESENT_AT_DOCTOR:
         # if the prescription is at the doctor it is the doctors job to upload
-        order = updateOrderStatus(cursor, OrderStatus.AT_DOCTOR)
+        order = updateOrderStatus(cursor, order, OrderStatus.AT_DOCTOR)
     else: # if the prescription is at the patient it is the patients job to upload
-        order = updateOrderStatus(cursor, OrderStatus.AT_PATIENT)
-    cursor.execute(query,(prescription.id, oder.id))
+        order = updateOrderStatus(cursor, order, OrderStatus.AT_PATIENT)
+    cursor.execute(query,(prescription.id, order.id))
     order._prescription = prescription
     return order
 
