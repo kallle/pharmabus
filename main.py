@@ -21,6 +21,7 @@ from models.patient import Patient
 from models.pharmacy import Pharmacy
 from models.doctor import Doctor
 from models.role import Role
+from models.prescription_status import PrescriptionStatus
 
 
 def get_db():
@@ -55,13 +56,20 @@ def check_my_users(user):
         return False
 
 
-def is_logged_in_as_overlord(username):
+def is_overlord(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
     user_id = getUserId(cursor, username)
     return getRole(cursor, user_id)  == Role.OVERLORD
+
+
+def is_logged_in_as_overlord(username):
+    if is_overlord(username):
+        return
+    else:
+        return "User {} is not an overlord".format(username)
 
 
 def is_logged_in_as_pharmacy(username):
@@ -73,7 +81,7 @@ def is_logged_in_as_pharmacy(username):
     return getRole(cursor, user_id)  == Role.PHARMACY
 
 
-def is_logged_in_as_driver(username):
+def is_driver(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
@@ -82,7 +90,14 @@ def is_logged_in_as_driver(username):
     return getRole(cursor, user_id)  == Role.DRIVER
 
 
-def is_logged_in_as_patient(username):
+def is_logged_in_as_driver(username):
+    if is_driver(username):
+        return
+    else:
+        return "User {} is not a driver".format(username)
+
+
+def is_patient(username):
     print(username)
     conn = get_db()
     cursor = conn.cursor()
@@ -93,13 +108,45 @@ def is_logged_in_as_patient(username):
     return getRole(cursor, user_id) == Role.PATIENT
 
 
-def is_logged_in_as_doctor():
+def is_logged_in_as_patient(username):
+    if is_patient(username):
+        return
+    else:
+        return "User {} is not a patient".format(username)
+
+
+def is_doctor():
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
     user_id = getUserId(cursor, username)
     return getRole(cursor, user_id) == Role.DOCTOR
+
+
+def is_logged_in_as_doctor(username):
+    if is_doctor(username):
+        return
+    else:
+        return "User {} is not a doctor".format(username)
+
+
+def is_pharmacy(username):
+    print(username)
+    conn = get_db()
+    cursor = conn.cursor()
+    if not is_logged_in():
+        return False
+    user_id = getUserId(cursor, username)
+    print(getRole(cursor, user_id))
+    return getRole(cursor, user_id) == Role.PHARMACY
+
+
+def is_logged_in_as_pharamacy(username):
+    if is_pharmacy(username):
+        return
+    else:
+        return "User {} is not a pharmacy".format(username)
 
 
 app = Flask(__name__)
@@ -122,17 +169,17 @@ def index():
     cursor = conn.cursor()
     username = session.get('simple_username')
     user_id = getUserId(cursor, username)
-    if is_logged_in_as_patient(username):
+    if is_patient(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.PATIENT, user_id)
         return render_template('orders.html', orders=orders)
-    elif is_logged_in_as_doctor(username):
+    elif is_doctor(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.DOCTOR, user_id)
         return render_template('orders.html', orders=orders)
-    elif is_logged_in_as_doctor(username):
+    elif is_pharmacy(username):
         conn = get_db()
         cursor = conn.cursor()
         orders = getAllOrdersFiltertForUser(cursor, Role.PHARMACY, user_id)
@@ -254,7 +301,7 @@ def order_choose_pharmacy():
     if flask.request.method == 'POST':
         doctor_id = flask.request.form.get('doctor_id')
         pharmacy_id = flask.request.form.get('pharmacy')
-        return render_template('order_choose_pharmacy.html', doctor_id=doctor_id, pharmacy_id=pharmacy_id)
+        return render_template('order_upload_prescription.html', doctor_id=doctor_id, pharmacy_id=pharmacy_id)
     else:
         return render_template("order_choose_doctor.html")
 
@@ -269,9 +316,10 @@ def order_upload_prescription():
         status = PrescriptionStatus.PRESENT_AT_DOCTOR if flask.request.form.get('prescription_location') == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
         scan = flask.request.form.get('scan')
         conn = get_db()
-        c = conn.cursor()
+        cursor = conn.cursor()
         order = insertOrder(cursor, session.get('simple_user_id'), doctor_id, pharmacy_id)
         order = addPrescriptionToOrder(cursor, order, status, scan)
+        conn.commit()
         flash('Bestellung erfolgreich eingetragen')
         return render_template('index.html')
     else:
@@ -321,6 +369,11 @@ app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)
 app.add_template_global(is_logged_in_as_overlord)
+app.add_template_global(is_pharmacy)
+app.add_template_global(is_driver)
+app.add_template_global(is_patient)
+app.add_template_global(is_overlord)
+
 app.teardown_appcontext(close_db)
 if __name__ == '__main__':
     app.run(port=5000, use_reloader=True, debug=True)
