@@ -11,7 +11,7 @@ class Order:
     def id(self):
         return self._id
 
-    @property
+    @id.setter
     def id(self,value):
         raise Exception("this is a read only object")
 
@@ -19,7 +19,7 @@ class Order:
     def title(self):
         return self._title
 
-    @property
+    @title.setter
     def title(self,value):
         raise Exception("this is a read only object")
 
@@ -27,7 +27,7 @@ class Order:
     def status(self):
         return self._status
 
-    @property
+    @status.setter
     def status(self,value):
         raise Exception("this is a read only object")
 
@@ -35,7 +35,7 @@ class Order:
     def prescription(self):
         return self._prescription
 
-    @property
+    @prescription.setter
     def prescription(self,value):
         raise Exception("this is a read only object")
 
@@ -43,7 +43,7 @@ class Order:
     def patient(self):
         return self._patient
 
-    @property
+    @patient.setter
     def patient(self,value):
         raise Exception("this is a read only object")
 
@@ -51,7 +51,7 @@ class Order:
     def doctor(self):
         return self._doctor
 
-    @property
+    @doctor.setter
     def doctor(self,value):
         raise Exception("this is a read only object")
 
@@ -59,7 +59,7 @@ class Order:
     def pharmacy(self):
         return self._pharmacy
 
-    @property
+    @pharmacy.setter
     def pharmacy(self,value):
         raise Exception("this is a read only object")
 

@@ -9,7 +9,7 @@ class Prescription:
     def id(self):
         return self._id
 
-    @property
+    @id.setter
     def id(self,value):
         raise Exception("this is a read only object")
 
@@ -17,7 +17,7 @@ class Prescription:
     def status(self):
         return self._status
 
-    @property
+    @status.setter
     def status(self,value):
         raise Exception("this is a read only object")
 
@@ -25,6 +25,6 @@ class Prescription:
     def scan(self):
         return self._scan
 
-    @property
+    @scan.setter
     def scan(self,value):
         raise Exception("this is a read only object")
