@@ -22,6 +22,7 @@ from models.pharmacy import Pharmacy
 from models.doctor import Doctor
 from models.role import Role
 from models.prescription_status import PrescriptionStatus
+from models.order_status import OrderStatus
 
 
 def get_db():
@@ -317,7 +318,10 @@ def order_upload_prescription():
         scan = flask.request.form.get('scan')
         conn = get_db()
         cursor = conn.cursor()
-        order = insertOrder(cursor, session.get('simple_user_id'), doctor_id, pharmacy_id)
+        doctor = getDoctor(cursor, doctor_id)
+        pharmacy = getPharmacy(cursor, pharmacy_id)
+        patient = getPatient(cursor, session.get('simple_user_id'))
+        order = insertOrder(cursor, patient, doctor, pharmacy)
         order = addPrescriptionToOrder(cursor, order, status, scan)
         conn.commit()
         flash('Bestellung erfolgreich eingetragen')
@@ -365,6 +369,21 @@ def calculate_routes():
         return render_template("calculate_routes.html")
 
 
+def template_translate_order_status(status):
+    if status == OrderStatus.AT_PATIENT:
+        return "Patient muss tätig werden"
+    elif status == OrderStatus.AT_DOCTOR:
+        return "Arzt muss das Rezept hochladen"
+    elif status == OrderStatus.AT_PHARMACY:
+        return "Apotheke muss die Bestellung bearbeiten"
+    elif status == OrderStatus.AT_DRIVER:
+        return "Fahrer hat das Medikament abgeholt"
+    elif status == OrderStatus.DELIVERED:
+        return "Bestellung wurde zugestellt"
+    else:
+        raise Exception("unsuppored order status enum value {}".format(status))
+
+
 app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)
@@ -373,6 +392,7 @@ app.add_template_global(is_pharmacy)
 app.add_template_global(is_driver)
 app.add_template_global(is_patient)
 app.add_template_global(is_overlord)
+app.add_template_global(template_translate_order_status)
 
 app.teardown_appcontext(close_db)
 if __name__ == '__main__':

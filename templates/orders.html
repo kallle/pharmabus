@@ -10,7 +10,7 @@
 <div class="row">
     <ul>
         {% for order in orders %}
-        <li>{{order.id}} ({{order.status}}):
+        <li>BestellNr.: {{order.id}} Status: {{ template_translate_order_status(order.status) }}
             <ul>
             {% for (med,amount) in order.medications %}
             <li>{{med.name}} ({{med.supplier}}) - {{amount}}</li>

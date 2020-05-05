@@ -13,9 +13,10 @@ from models.order_status import OrderStatus
 from models.prescription_status import PrescriptionStatus
 from models.stock import Stock
 from models.prescription import Prescription
+from models.doctor import Doctor
 
 
-class DatabaseEntityDoesNotExist():
+class DatabaseEntityDoesNotExist(Exception):
 
     def __init__(self, entity_type, reference_id):
         self._entity_type = entity_type
@@ -117,7 +118,7 @@ def getDoctor(cursor, row_id):
                 WHERE id = ?"""
     cursor.execute(query,(row_id,))
     doctor = cursor.fetchone()
-    if patient is None:
+    if doctor is None:
         raise DatabaseEntityDoesNotExist("Doctor", row_id)
     else:
         return Doctor(doctor[0],
@@ -351,15 +352,15 @@ def getOrder(cursor, row_id):
     return Order(id,
                  OrderStatus.fromString(status),
                  getPrescription(cursor, prescription) if prescription else None,
-                 patient,
-                 doctor,
+                 getPatient(cursor, patient),
+                 getDoctor(cursor, doctor),
                  pharmacy)
 
 
 def insertOrder(cursor, patient, doctor, pharmacy, prescription=None):
     query = """INSERT INTO Orders(status, patient, doctor, pharmacy)
                VALUES (?,?,?,?)"""
-    cursor.execute(query,(OrderStatus.toString(OrderStatus.AT_PATIENT), patient, doctor, pharmacy))
+    cursor.execute(query,(OrderStatus.toString(OrderStatus.AT_PATIENT), patient.id, doctor.id, pharmacy.id))
     rowId = cursor.lastrowid
     return getOrder(cursor, rowId)
 

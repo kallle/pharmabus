@@ -14,7 +14,7 @@ class OrderStatus(Enum):
         elif enum_value == OrderStatus.AT_DOCTOR:
             return "at_doctor"
         elif enum_value == OrderStatus.AT_PHARMACY:
-            return "at_pharamcy"
+            return "at_pharmacy"
         elif enum_value == OrderStatus.AT_DRIVER:
             return "at_driver"
         elif enum_value == OrderStatus.DELIVERED:
