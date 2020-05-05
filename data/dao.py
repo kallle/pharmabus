@@ -378,6 +378,11 @@ def deleteOrder(cursor, order):
     cursor.execute(query,(order.id,))
 
 
+def updateOrder(cursor, order):
+    if order.prescription is not None:
+        raise Exception("I have to continue here")
+
+
 # this function must never be used outside of this file
 def getPrescription(cursor, rowId):
     query = """SELECT id,

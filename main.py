@@ -374,6 +374,23 @@ def modify_order():
         flash('Tut uns leid, aber diese Bestellung kann von dir aktuell nicht geändert werden')
         return render_template('index.html')
     if flask.request.method == "POST":
+        username = session.get('simple_username')
+        if is_user(username):
+            pharmacy_id = flask.request.form.get('pharmacy')
+            doctor_id = flask.request.form.get('doctor')
+            location = flask.request.form.get('prescription_location')
+            scan = flask.request.form.get('scan')
+            try:
+                pharmacy = getPharmacy(cursor, pharmacy_id)
+                doctor = getDoctor(cursor, doctor_id)
+                status = PrescriptionStatus.PRESENT_AT_DOCTOR if flask.request.form.get('prescription_location') == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
+            except DatabaseEntityDoesNotExist:
+                flash('Uups da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
+                return render_template("modify_order.html", order=order)
+        elif is_doctor(username):
+            pass
+        elif is_pharmacy(username):
+            pass
         flash('Änderung erfolgreich übernommen')
         return render_template("index.html")
     if flask.request.method == "GET":
