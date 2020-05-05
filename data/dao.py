@@ -30,6 +30,9 @@ class DatabaseEntityDoesNotExist(Exception):
     def reference_id(self):
         return self._reference_id
 
+    def __str__(self):
+        return 'id {} has no entry in as {}'.format(self.reference_id, self.entity_type)
+
 
 def getUserId(cursor, email):
     query = """SELECT id
@@ -282,6 +285,7 @@ def translateRoleToString(role, plural=True):
         raise Exception("WTF")
     return role
 
+
 def checkIfRole(cursor, role, id):
     role = translateRoleToString(role, plural=True)
     query = "SELECT True FROM {} WHERE user_id = ?".format(role)
@@ -354,7 +358,7 @@ def getOrder(cursor, row_id):
                  getPrescription(cursor, prescription) if prescription else None,
                  getPatient(cursor, patient),
                  getDoctor(cursor, doctor),
-                 pharmacy)
+                 getPharmacy(cursor, pharmacy))
 
 
 def insertOrder(cursor, patient, doctor, pharmacy, prescription=None):

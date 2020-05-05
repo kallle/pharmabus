@@ -11,7 +11,11 @@
     <ul>
         {% for order in orders %}
         <li>BestellNr.: {{order.id}} Status: {{ template_translate_order_status(order.status) }}
-          <a href='/cancel_order?order_id={{ order.id }}'>Cancel</a>
+          {% if order_status_corresponds_to_user_role( order.status ) %}
+          <a href='/modify_order?order_id={{ order.id }}'>[Ändern]</a>
+          {% else %}
+          [Kann nicht geändert werden]
+          {% endif %}
         </li>
         {% endfor %}
     </ul>

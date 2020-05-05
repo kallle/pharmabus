@@ -7,6 +7,7 @@ from flask import g
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 
 import settings
+from data.dao import DatabaseEntityDoesNotExist
 from data.dao import getRegisteredUserById, getOverlord, getPatient, getDoctor, getPharmacy, getDriver,\
     registerPatient, registerDoctor, registerPharmacy, registerDriver, getUserId
 from data.dao import getAllDrivers, getAllPharmacies, getAllOrders, getAllOrdersFiltertForUser
@@ -73,22 +74,35 @@ def is_logged_in_as_overlord(username):
         return "User {} is not an overlord".format(username)
 
 
+def is_pharmacy(username):
+    conn = get_db()
+    cursor = conn.cursor()
+    if not is_logged_in():
+        return False
+    try:
+        user_id = getUserid(cursor, username)
+        return getRole(cursor, user_id)  == Role.PHARMACY
+    except DatabaseEntityDoesNotExist:
+        return False
+
+
 def is_logged_in_as_pharmacy(username):
+    if is_pharmacy(username):
+        return
+    else:
+        return "User {} is not a Pharmacy".format(username)
+
+
+def is_driver(username): #valid change
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = getUserid(cursor, username)
-    return getRole(cursor, user_id)  == Role.PHARMACY
-
-
-def is_driver(username):
-    conn = get_db()
-    cursor = conn.cursor()
-    if not is_logged_in():
+    try:
+        user_id = getUserId(cursor, username)
+        return getRole(cursor, user_id)  == Role.DRIVER
+    except DatabaseEntityDoesNotExist:
         return False
-    user_id = getUserId(cursor, username)
-    return getRole(cursor, user_id)  == Role.DRIVER
 
 
 def is_logged_in_as_driver(username):
@@ -104,9 +118,12 @@ def is_patient(username):
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = getUserId(cursor, username)
-    print(getRole(cursor, user_id))
-    return getRole(cursor, user_id) == Role.PATIENT
+    try:
+        user_id = getUserId(cursor, username)
+        return getRole(cursor, user_id) == Role.PATIENT
+    except DatabaseEntityDoesNotExist as e:
+        print(e)
+        return False
 
 
 def is_logged_in_as_patient(username):
@@ -116,13 +133,16 @@ def is_logged_in_as_patient(username):
         return "User {} is not a patient".format(username)
 
 
-def is_doctor():
+def is_doctor(username):
     conn = get_db()
     cursor = conn.cursor()
     if not is_logged_in():
         return False
-    user_id = getUserId(cursor, username)
-    return getRole(cursor, user_id) == Role.DOCTOR
+    try:
+        user_id = getUserId(cursor, username)
+        return getRole(cursor, user_id) == Role.DOCTOR
+    except DatabaseEntityDoesNotExist:
+        return False
 
 
 def is_logged_in_as_doctor(username):
@@ -132,22 +152,11 @@ def is_logged_in_as_doctor(username):
         return "User {} is not a doctor".format(username)
 
 
-def is_pharmacy(username):
-    print(username)
-    conn = get_db()
-    cursor = conn.cursor()
-    if not is_logged_in():
-        return False
-    user_id = getUserId(cursor, username)
-    print(getRole(cursor, user_id))
-    return getRole(cursor, user_id) == Role.PHARMACY
-
-
-def is_logged_in_as_pharamacy(username):
-    if is_pharmacy(username):
+def is_logged_in_at_all(username):
+    if is_logged_in():
         return
     else:
-        return "User {} is not a pharmacy".format(username)
+        return False
 
 
 app = Flask(__name__)
@@ -289,8 +298,15 @@ def register_doctor():
 @app.route('/order_choose_doctor', methods=['GET', 'POST'])
 @login_required(must=[is_logged_in_as_patient])
 def order_choose_doctor():
+    conn = get_db()
+    cursor = conn.cursor()
     if flask.request.method == 'POST':
         doctor_id = flask.request.form.get('doctor')
+        try:
+            doctor = getDoctor(cursor, doctor_id)
+        except DatabaseEntityDoesNotExist:
+            flash('Dieser Doktor existiert nicht')
+            return render_template('order_choose_doctor.html')
         return render_template('order_choose_pharmacy.html', doctor_id=doctor_id)
     else:
         return render_template("order_choose_doctor.html")
@@ -301,7 +317,11 @@ def order_choose_doctor():
 def order_choose_pharmacy():
     if flask.request.method == 'POST':
         doctor_id = flask.request.form.get('doctor_id')
-        pharmacy_id = flask.request.form.get('pharmacy')
+        try:
+            pharmacy_id = flask.request.form.get('pharmacy')
+        except DatabaseEntityDoesNotExist:
+            flash('Diese Apotheke existiert nicht')
+            return render_template('order_choose_pharmacy.html', doctor_id=doctor_id)
         return render_template('order_upload_prescription.html', doctor_id=doctor_id, pharmacy_id=pharmacy_id)
     else:
         return render_template("order_choose_doctor.html")
@@ -318,9 +338,13 @@ def order_upload_prescription():
         scan = flask.request.form.get('scan')
         conn = get_db()
         cursor = conn.cursor()
-        doctor = getDoctor(cursor, doctor_id)
-        pharmacy = getPharmacy(cursor, pharmacy_id)
-        patient = getPatient(cursor, session.get('simple_user_id'))
+        try:
+            doctor = getDoctor(cursor, doctor_id)
+            pharmacy = getPharmacy(cursor, pharmacy_id)
+            patient = getPatient(cursor, session.get('simple_user_id'))
+        except DatabaseEntityDoesNotExist:
+            flash('Ups, da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
+            return render_template('order_choose_doctor')
         order = insertOrder(cursor, patient, doctor, pharmacy)
         order = addPrescriptionToOrder(cursor, order, status, scan)
         conn.commit()
@@ -328,6 +352,32 @@ def order_upload_prescription():
         return render_template('index.html')
     else:
         return render_template('order_choose_doctor.html')
+
+
+@app.route('/modify_order', methods=['GET','POST'])
+@login_required(must=[is_logged_in_at_all])
+def modify_order():
+    conn = get_db()
+    cursor = conn.cursor()
+    if flask.request.method == "GET":
+        order_id = flask.request.args.get('order_id')
+    else:
+        order_id = flask.request.form.get("order_id")
+    if not order_id:
+        raise Exception("Order Id expected for cancellation")
+    try:
+        order = getOrder(cursor, order_id)
+    except DatabaseEntityDoesNotExist:
+        flash('Uups da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
+        return render_template('index.html')
+    if not order_status_corresponds_to_user_role(order.status):
+        flash('Tut uns leid, aber diese Bestellung kann von dir aktuell nicht geändert werden')
+        return render_template('index.html')
+    if flask.request.method == "POST":
+        flash('Änderung erfolgreich übernommen')
+        return render_template("index.html")
+    if flask.request.method == "GET":
+        return render_template("modify_order.html", order=order)
 
 
 @app.route('/cancel_order', methods=['GET'])
@@ -403,6 +453,22 @@ def template_translate_order_status(status):
         raise Exception("unsuppored order status enum value {}".format(status))
 
 
+def order_status_corresponds_to_user_role(status):
+    username = session.get('simple_username')
+    if status == OrderStatus.AT_PATIENT:
+        print('is patient {}'.format(is_patient(username)))
+        return is_patient(username)
+    elif status == OrderStatus.AT_DOCTOR:
+        return is_doctor(username)
+    elif status == OrderStatus.AT_PHARMACY:
+        return is_pharmacy(username)
+    elif status == OrderStatus.AT_DRIVER:
+        return is_driver(username)
+    elif status == OrderStatus.DELIVERED:
+        return is_patient(username)
+    else:
+        raise Exception("unsuppored order status enum value {}".format(status))
+
 app.add_template_global(is_logged_in_as_pharmacy)
 app.add_template_global(is_logged_in_as_driver)
 app.add_template_global(is_logged_in_as_patient)
@@ -412,6 +478,7 @@ app.add_template_global(is_driver)
 app.add_template_global(is_patient)
 app.add_template_global(is_overlord)
 app.add_template_global(template_translate_order_status)
+app.add_template_global(order_status_corresponds_to_user_role)
 
 app.teardown_appcontext(close_db)
 if __name__ == '__main__':
