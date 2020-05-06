@@ -5,8 +5,110 @@ from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord
 import flask
 from flask import Flask, render_template, session, request, flash, redirect
 
-@app.route('/order_create_order', methods=['GET','POST'])
+
+class RenderTemplate(condition):
+
+    def __init__(self, template):
+        self.template = template
+
+
+def handle_doctor_check(cursor, formStatus):
+    if formStatus.doctor_id is not None:
+        try:
+            return getDoctor(cursor, formStatus.doctor_id)
+        except:
+            flash('Bitte wahle einen existierenden Arzt')
+            raise RenderTemplate(render_template('order/choose_doctor.html', formStatus=formStatus))
+    else:
+        raise RenderTemplate(render_template('order/choose_doctor.html', formStatus=formStatus))
+
+
+def handle_pharmacy_check(cursor, formStatus):
+    if formStatus.pharmacy_id is not None:
+    try:
+        pharmacy = getPharmacy(cursor, formStatus.pharmacy_id)
+    except:
+        flash('Bitte wahle eine existierende Apotheke')
+        raise Render(render_template('order/choose_pharmacy.html', formStatus=formStatus))
+    else:
+        raise Render(render_template('order/choose_pharmacy.html', formStatus=formStatus))
+
+
+class OrderForm:
+
+    def __init__(self, order_id, doctor_id, pharmacy_id, patient_id):
+        self.order_id = order_id
+        self.doctor_id = doctor_id
+        self.pharmacy_id = pharmacy_id
+        self.patient_id = patient_id
+
+    def __init__(self):
+        self.order_id = None
+        self.doctor_id = None
+        self.pharmacy_id = None
+        self.patient_id = None
+
+
+def handleOrderUpdate(formStatus):
+    pass
+
+def handleORderCreation(formStatus):
+    pass
+
+
+@app.route('order/order_create_order', methods=['GET','POST'])
 @login_required(must=[is_logged_in_as_patient])
+def order_create_order():
+    if flask.request.method == 'GET':
+        formStatus = OrderForm()
+        return render_template('order/choose_doctor.html', formStatus=formStatus)
+    elif flask.request.method == 'POST':
+        formStatus = OrderForm(flask.request.form.get('order_id'),
+                               flask.request.form.get('doctor_id'),
+                               flask.request.form.get('pharmacy_id'),
+                               flask.request.form.get('patient_id'))
+        try:
+            if formStatus.order_id:
+                handleOrderUpdate(formStatus)
+            else:
+                handleOrderCreation(formStatus)
+            # check if we have a valid doctor
+            doctor = handle_doctor_check(cursor, formStatus)
+            # check if we have a valid pharmacy
+            pharmacy_id = handle_pharmacy_check(cursor, formStatus)
+            # check if the current user exists (just to make sure)
+            try:
+                patient = getPatient(cursor, session.get('simple_user_id'))
+            except:
+                # if the user does not exist something very wrong is going on
+                return render_template('index.html')
+            # check if the order already has an id
+            if formStatus.order_id is None:
+                # if not the order is new and needs to be inserted for the current patient
+                order = insertOrder(cursor, patient, doctor, pharmacy)
+                conn.commit()
+                # and the upload prescription form needs to be rendered for uploading the prescription
+                return render_template('upload_prescription.html', order=order)
+            else:
+                # if the order exists
+                try:
+                    # get the order from the database
+                    order = getOrder(cursor, order_id)
+                    if not order.patient.id != patient.id:
+                        # if the current patient does not match the order
+                        return render_template('index.html')
+                    else:
+                        updateOrder(cursor, order)
+                        conn.commit()
+                        flash('Order erfolgreich geaendert')
+                        return render_template('index.html')
+                except DatabaseEntityDoesNotExist:
+                    # this is odd and probably a hacking attempt
+                    return render_template('index.html')
+        except RenderTemplate as signal:
+            return signal.template
+    else:
+        render_template('index.html')
 
 
 @app.route('/order_choose_doctor', methods=['GET', 'POST'])

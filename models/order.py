@@ -7,6 +7,14 @@ class Order:
         self._doctor = doctor
         self._pharmacy = pharmacy
 
+    def __init__(self):
+        self._id = None
+        self._status = None
+        self._prescription = None
+        self._patient = None
+        self._doctor = None
+        self._pharmacy = None
+
     @property
     def id(self):
         return self._id
