@@ -425,7 +425,6 @@ class OrderAlreadyHasPrescription(Exception):
     pass
 
 
-# this function must never be used outside of this file
 def updateOrderStatus(cursor, order, order_status):
     query = """UPDATE Orders
                SET status = ?

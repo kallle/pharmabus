@@ -4,7 +4,7 @@ from control.login_checks import is_logged_in_as_pharmacy, is_logged_in_as_drive
 from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord, check_my_users, is_logged_in_at_all
 import flask
 from flask import Flask, render_template, session, request, flash, redirect, send_file
-from data.dao import DatabaseEntityDoesNotExist, getDoctor, getPatient, getPharmacy, getOrder, insertOrder, addPrescriptionToOrder, updateOrder, deleteOrder
+from data.dao import DatabaseEntityDoesNotExist, getDoctor, getPatient, getPharmacy, getOrder, insertOrder, addPrescriptionToOrder, updateOrder, deleteOrder, updateOrderStatus
 from data.database_handler import get_db
 from models.prescription_status import PrescriptionStatus
 from control.login_checks import is_doctor, is_patient, is_pharmacy
@@ -368,5 +368,27 @@ def download_prescription():
             raise Exception('wtf')
         prescription_file = os.path.join(app.instance_path, app.config['UPLOAD_FOLDER'], order.prescription.scan)
         return send_file(prescription_file, as_attachment=True)
+    else:
+        raise Exception('wtf')
+
+
+@app.route('/order/order_confirmation_pharmacy', methods=['POST'])
+@login_required(must=[is_logged_in_as_pharmacy])
+def confirmation_pharmacy():
+    if flask.request.method == 'POST':
+        formStatus = OrderForm(flask.request.form.get('order_id'),
+                               flask.request.form.get('doctor_id'),
+                               flask.request.form.get('pharmacy_id'),
+                               flask.request.form.get('patient_id'))
+        conn = get_db()
+        cursor = conn.cursor()
+        order = getOrder(cursor, formStatus.order_id)
+        pharmacy = getPharmacy(cursor, session.get('simple_user_id'))
+        if not order.pharmacy.id == pharmacy.id:
+            raise Exception('no you may not change a foreign order asshat')
+        updateOrderStatus(cursor, order, OrderStatus.AT_PHARMACY_CONFIRMED)
+        conn.commit()
+        flash('you confirmed the order, please wait for the driver to pick up the order')
+        return render_template('index.html')
     else:
         raise Exception('wtf')

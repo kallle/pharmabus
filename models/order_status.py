@@ -4,6 +4,7 @@ class OrderStatus(Enum):
 
     AT_PATIENT = "at_patient"
     AT_PHARMACY = "at_pharmacy"
+    AT_PHARMACY_CONFIRMED = "at_pharmacy_confirmed"
     AT_DRIVER = "at_driver"
     AT_DOCTOR = "at_doctor"
     DELIVERED = "delivered"
@@ -15,6 +16,8 @@ class OrderStatus(Enum):
             return "at_doctor"
         elif enum_value == OrderStatus.AT_PHARMACY:
             return "at_pharmacy"
+        elif enum_value == OrderStatus.AT_PHARMACY_CONFIRMED:
+            return "at_pharmacy_confirmed"
         elif enum_value == OrderStatus.AT_DRIVER:
             return "at_driver"
         elif enum_value == OrderStatus.DELIVERED:
@@ -33,5 +36,7 @@ class OrderStatus(Enum):
             return OrderStatus.AT_DRIVER
         elif enum == "delivered":
             return OrderStatus.DELIVERED
+        elif enum == "at_pharmacy_confirmed":
+            return OrderStatus.AT_PHARMACY_CONFIRMED
         else:
             raise Exception("unsupported string for order status {}".format(enum))

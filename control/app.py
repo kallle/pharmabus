@@ -40,6 +40,8 @@ def template_translate_order_status(status):
         return "Arzt muss das Rezept hochladen"
     elif status == OrderStatus.AT_PHARMACY:
         return "Apotheke muss die Bestellung bearbeiten"
+    elif status == OrderStatus.AT_PHARMACY_CONFIRMED:
+        return "Fahrer muss das Medikament abholen"
     elif status == OrderStatus.AT_DRIVER:
         return "Fahrer hat das Medikament abgeholt"
     elif status == OrderStatus.DELIVERED:
@@ -56,6 +58,8 @@ def order_status_corresponds_to_user_role(status):
     elif status == OrderStatus.AT_DOCTOR:
         return is_doctor(username)
     elif status == OrderStatus.AT_PHARMACY:
+        return is_pharmacy(username)
+    elif status == OrderStatus.At_PHARMACY_CONFIRMED:
         return is_pharmacy(username)
     elif status == OrderStatus.AT_DRIVER:
         return is_driver(username)
