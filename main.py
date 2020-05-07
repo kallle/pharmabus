@@ -2,6 +2,7 @@ from control.app import app
 import control.index
 import control.registration
 import control.order
+import control.routing
 import jinja2
 import os
 

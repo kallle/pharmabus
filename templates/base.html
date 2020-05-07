@@ -26,7 +26,7 @@
           </li>
             {% if is_overlord(get_username()) %}
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('calculate_routes')}}">Routen Berechnen!</a>
+                <a class="nav-link" href="{{url_for('calculateRoutes')}}">Routen Berechnen!</a>
             </li>
             {% endif %}
             {% if is_patient(get_username()) %}

@@ -335,7 +335,7 @@ def checkLogin(cursor, email, password):
                       WHERE email = ?""", (email,))
     pwhash = cursor.fetchone()
     if not pwhash:
-        return False
+        return False, -1
     return check_password_hash(pwhash[0], password), pwhash[1]
 
 
@@ -496,3 +496,25 @@ def getAllOrdersFiltertForUser(cursor, userRole, userId):
     for order_id in cursor.fetchall():
         orders.append(getOrder(cursor, order_id[0]))
     return orders
+
+
+def getAllOrdersByStatus(cursor, status):
+    query = """SELECT id
+               FROM orders
+               WHERE status = ?"""
+    cursor.execute(query, (OrderStatus.toString(status),))
+    orders = list()
+    for order_id in cursor.fetchall():
+        orders.append(getOrder(cursor, order_id[0]))
+    return orders
+
+
+def getAllActiveDrivers(cursor):
+    query = """SELECT user_id
+               FROM drivers
+               WHERE current_route IS NULL"""
+    cursor.execute(query)
+    drivers = list()
+    for driver in cursor.fetchall():
+        drivers.append(getDriver(cursor, driver[0]))
+    return drivers

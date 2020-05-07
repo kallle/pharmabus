@@ -1,5 +1,7 @@
 from models.route import Route
 from models.delivery_step import DeliveryStep
+from models.delivery_step_type import DeliveryStepType
+from models.prescription_status import PrescriptionStatus
 
 
 # calculate distances based on bird distance calculation provided
@@ -21,7 +23,7 @@ def generatePossibleDriverPharmacySet(drivers, pharmacies):
     for driver in drivers:
         for pharmacy in pharmacies:
             dis = distance(driver, pharmacy)
-            if  dis < driver.range:
+            if  dis < driver.max_range:
                 res.append(DriverPharmacyElement(driver, pharmacy))
             else:
                 print("driver {} does not like the distance to {} of {}".format(driver.name, pharmacy.name, dis))
@@ -33,40 +35,31 @@ class DriverOrderElement:
     def __init__(self, driver, order):
         self.driver = driver
         self.order = order
-        self.requiresPrescriptionPickup = (order.prescription.status == PrescriptionStatus.AT_DOCTOR)
+        self.requiresPrescriptionPickup = (order.prescription.status == PrescriptionStatus.PRESENT_AT_DOCTOR)
 
 
 def generatePossibleDriverOrderSet(drivers, orders):
     res = list()
     for driver in drivers:
         for order in orders:
-            if order.prescription.status == PrescriptionStatus.AT_PATIENT:
-                if distance(driver, order.patient) < driver.range:
+            if order.prescription.status == PrescriptionStatus.PRESENT_AT_PATIENT:
+                if distance(driver, order.patient) < driver.max_range:
                     res.append(DriverOrderElement(driver, order))
-            elif order.prescription.status == PrescriptionStatus.AT_DOCTOR:
-                if distance(driver, order.patient) < driver.range and distance (driver, order.doctor) < driver.range:
+            elif order.prescription.status == PrescriptionStatus.PRESENT_AT_DOCTOR:
+                if distance(driver, order.patient) < driver.max_range and distance (driver, order.doctor) < driver.max_range:
                     res.append(DriverOrderElement(driver, order))
     return res
 
 
 def remove(lst, probe, rem=list(), deleted=list()):
-    if len(lst) == 0:
-        return builder
-    elif probe(lst[0]):
-        deleted.append(lst[0])
-        rem, deleted = remove(lst[1:], probe, rem, deleted)
-        return rem, deleted
-    else:
-        rem.append(lst[0])
-        rem, deleted = remove(lst[1:], probe, rem, deleted)
-        return rem, deleted
-
-
-class DeliveryActions(enum):
-
-    PICK_UP_PRESCRIPTION = 0
-    PICK_UP_MED = 1
-    DROP_OFF_MED = 2
+    deleted = list()
+    remaining = list()
+    for elem in lst:
+        if probe(elem):
+            deleted.append(elem)
+        else:
+            remaining.append(elem)
+    return remaining, deleted
 
 
 class PossibleDeliveryStep(DeliveryStep):
@@ -81,7 +74,7 @@ class PossibleDeliveryStep(DeliveryStep):
         return distance(self.driver, self.destination) >= distance(other.driver, other.destination)
 
     def deleteDependency(self, dependency):
-        rem, deleted = remove(self.prerequisites, lambda a: a = dependency)
+        self.prerequisites.remove(dependency)
         self.prerequisites = rem
 
     def hasUnresolvedDependencies(self):
@@ -101,7 +94,7 @@ def calculateDriverSetsIntersection(driverPharmacySet, driverOrderSet):
                 dependency = list()
                 pharmacyPickup = PossibleDeliveryStep(driverOrder.driver,
                                                       driverOrder.order.pharmacy,
-                                                      DeliveryAction.PICK_UP_MED
+                                                      DeliveryStepType.PICK_UP_MED,
                                                       driverOrder.order)
                 ret.append(pharmacyPickup)
                 dependency.append(pharmacyPickup)
@@ -109,13 +102,13 @@ def calculateDriverSetsIntersection(driverPharmacySet, driverOrderSet):
                 if driverOrder.requiresPrescriptionPickup:
                     doctorPickup = PossibleDeliveryStep(driverOrder.driver,
                                                         driverOrder.order.doctor,
-                                                        DeliveryAction.PICK_UP_PRESCRIPTION,
+                                                        DeliveryStepType.PICK_UP_PRESCRIPTION,
                                                         driverOrder.order)
                     ret.append(doctorPickup)
                     dependency.append(doctorPickup)
                 patientDropOff = PossibleDeliveryStep(driverOrder.driver,
                                                       driverOrder.order.patient,
-                                                      DeliveryAction.DROP_OFF_MED,
+                                                      DeliveryStepType.DROP_OFF_MED,
                                                       driverOrder.order,
                                                       prerequisites=dependency)
                 pharmacyPickup.isDependedOnBy = patientDropOff
@@ -147,14 +140,13 @@ def printDeliverySet(delivery_set):
 
 # O(n)
 def deliverySetSplitter(possibleDeliverySet):
-    assert len(possible_delivery_set) > 0
     driverSets = dict()
     for drive in possibleDeliverySet:
         if drive.driver in driverSets.keys():
             driverSets[drive.driver].append(drive)
         else:
             driverSets[drive.driver] = list([drive])
-    return [value for value in driver_sets.values()]
+    return [value for value in driverSets.values()]
 
 
 # O(n)
@@ -182,7 +174,7 @@ def findClosestNextStep(location, possibleNextSteps):
 
 def travellingSalesMan(driver, driverDeliverySet):
     theDrive = list()
-    driverDeliverySet = remove(driverDeliverSet, lambda a : not a.isScheduled)
+    driverDeliverySet = remove(driverDeliverySet, lambda a : not a.isScheduled)
     possibleSteps, dependingSteps = remove(driverDeliverySet, lambda a : a.hasUnresolvedDependency())
     current = findClosestNextStep(driver, possibleSteps)
     theDrive.append(current)

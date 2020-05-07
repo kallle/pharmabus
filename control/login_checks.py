@@ -4,7 +4,6 @@ from flask_simplelogin import is_logged_in
 from models.role import Role
 from flask import session
 
-
 def check_my_users(user):
     conn = get_db()
     cursor = conn.cursor()
@@ -13,7 +12,7 @@ def check_my_users(user):
     print('test')
     try:
         success, id = checkLogin(cursor, email, password)
-    except DataBaseEntityDoesNotExist:
+    except DatabaseEntityDoesNotExist:
         return False
     if success:
         session['simple_user_id'] = id
