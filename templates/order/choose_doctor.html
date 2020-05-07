@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Bitte wahlen Sie den behandelnden Arzt{% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('choose_doctor') }}" method="post">
+  <div class="form-group">
+    <label for="doctor_id">Behandelnde Arzt ist:</label>
+    <input name="doctor_id" id="doctor_id" value="{{ formStatus.doctor_id }}"> <br>
+    <input type="hidden" id="patient_id" name="patient_id" value="{{ formStatus.patient_id }}">
+    <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ formStatus.pharmacy_id }}">
+    <input type="hidden" id="order_id" name="order_id" value="{{ formStatus.order_id }}">
+    <input type="submit" value="fertig">
+  </div>
+</form>
+{% endblock %}

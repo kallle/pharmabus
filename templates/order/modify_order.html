@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Meine Bestellungen{% endblock %}
+
+{% block page_body %}
+<div class="row">
+    <p>
+        Bestellungen:
+    </p>
+</div>
+<div class="row">
+    <ul>
+      <li>
+        Order Status : {{ order.status }}
+      </li>
+      <li>
+        Behandelnde Arzt : {{ order.doctor.surname }} {{ order.doctor.familyname }}
+        {% if actor == 'patient' and order.status == ostatus.AT_PATIENT %}
+        <form action="{{ url_for('choose_doctor') }}" method="get">
+          <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
+          <input type="hidden" id="patient_id"  name="patient_id"  value="{{ order.patient.id }}">
+          <input type="hidden" id="doctor_id"   name="doctor_id"   value="{{ order.doctor.id }}">
+          <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+          <input type="submit" value="anpassen">
+        </form>
+        {% endif %}
+      </li>
+      <li>Apotheke : {{ order.pharmacy.name }}
+        {% if actor == 'patient' and order.status == ostatus.AT_PATIENT %}
+        <form action="{{ url_for('choose_pharmacy') }}" method="get">
+          <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
+          <input type="hidden" id="patient_id"  name="patient_id"  value="{{ order.patient.id }}">
+          <input type="hidden" id="doctor_id"   name="doctor_id"   value="{{ order.doctor.id }}">
+          <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+          <input type="submit" value="anpassen">
+        </form>
+        {% endif %}
+      </li>
+      <li>Rezept
+        <ul>
+          <li>
+            Ort
+            {% if order.prescription.scan is none %}
+            {{ order.prescription.status }}
+            {% else %}
+            vorhanden
+            {% endif %}
+          </li>
+          <li> Datei
+            {% if order.prescription.scan is none %}
+            [fehlt]
+            {% else %}
+            <form action="{{ url_for('download_prescription') }}" method="post">
+              <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
+              <input type="hidden" id="patient_id"  name="patient_id"  value="{{ order.patient.id }}">
+              <input type="hidden" id="doctor_id"   name="doctor_id"   value="{{ order.doctor.id }}">
+              <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+              <input type="submit" value="download">
+            </form>
+            {% endif %}
+          </li>
+          {% if ((actor == 'patient' and order.prescription.status == pstatus.PRESENT_AT_PATIENT and order.status == ostatus.AT_PATIENT) or
+                 (actor == 'doctor' and order.prescription.status == pstatus.PRESENT_AT_DOCTOR and order.status == ostatus.AT_PATIENT)) %}
+          <li>
+            <form action="{{ url_for('upload_prescription') }}" method="get">
+              <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
+              <input type="hidden" id="patient_id"  name="patient_id"  value="{{ order.patient.id }}">
+              <input type="hidden" id="doctor_id"   name="doctor_id"   value="{{ order.doctor.id }}">
+              <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+              <input type="submit" value="anpassen">
+            </form>
+          </li>
+          {% endif %}
+        </ul>
+      </li>
+      {% if actor == 'patient' and order.status == ostatus.AT_PATIENT %}
+      <li>
+        <a href='/order/cancel_order?order_id={{ order.id }}'>Cancel</a>
+      </li>
+      {% endif %}
+      {% if actor == 'pharmacy' and order.status == ostatus.AT_PHARMACY %}
+      <li>
+        <form action="{{ url_for('confirmation_pharmacy') }}" method="post">
+          <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
+          <input type="hidden" id="patient_id"  name="patient_id"  value="{{ order.patient.id }}">
+          <input type="hidden" id="doctor_id"   name="doctor_id"   value="{{ order.doctor.id }}">
+          <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+          <input type="submit" value="Bestellung bestaetigen">
+        </form>
+      </li>
+      {% endif %}
+    </ul>
+</div>
+{% endblock %}

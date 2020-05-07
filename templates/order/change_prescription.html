@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Rezept Hochladen{% endblock %}
+
+{% block page_body %}
+<form action="{{ url_for('upload_prescription') }}" method="post" enctype=multipart/form-data>
+  <div class="form-group">
+    <label for="prescription_location">Rezept liegt bei</label> <br>
+    <fieldset id="prescription_location">
+      <label>behandelndem Arzt</label> <input type="radio" value="doctor" name="prescription_location">
+      <label>Patient</label> <input type="radio" value="patient" name="prescription_location" checked>
+    </fieldset>
+    <input type="file" name="prescription" id="prescription">
+    <input type="hidden" id="doctor_id" name="doctor_id" value="{{ order.doctor.id }}">
+    <input type="hidden" id="pharmacy_id" name="pharmacy_id" value="{{ order.pharmacy.id }}">
+    <input type="hidden" id="patient_id" name="patient_id" value="{{ order.patient.id }}">
+    <input type="hidden" id="order_id" name="order_id" value="{{ order.id }}">
+    <input type="submit" value="fertig">
+  </div>
+</form>
+{% endblock %}
