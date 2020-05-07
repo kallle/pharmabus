@@ -132,8 +132,8 @@ def update_prescription(formStatus, pstatus, scan):
         doctor = getDoctor(cursor, session.get('simple_user_id'))
         if order.doctor.id != doctor.id:
             raise Exception('probable hacking attempt, doctor patient mismatch logged in doctor')
-        order = addPrescriptionToORder(cursor, order, pstatus, scan=filename, supersede=True)
-        con.commit()
+        order = addPrescriptionToOrder(cursor, order, pstatus, scan=filename, supersede=True)
+        conn.commit()
         return order
     else:
         raise Exception("only the patient or doctor may change a prescription")

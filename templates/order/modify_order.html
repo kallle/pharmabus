@@ -59,7 +59,7 @@
             {% endif %}
           </li>
           {% if ((actor == 'patient' and order.prescription.status == pstatus.PRESENT_AT_PATIENT and order.status == ostatus.AT_PATIENT) or
-                 (actor == 'doctor' and order.prescription.status == pstatus.PRESENT_AT_DOCTOR and order.status == ostatus.AT_PATIENT)) %}
+                 (actor == 'doctor' and order.prescription.status == pstatus.PRESENT_AT_DOCTOR and order.status == ostatus.AT_DOCTOR)) %}
           <li>
             <form action="{{ url_for('upload_prescription') }}" method="get">
               <input type="hidden" id="order_id"    name="order_id"    value="{{ order.id }}">
