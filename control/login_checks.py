@@ -2,6 +2,7 @@ from data.database_handler import get_db
 from data.dao import checkLogin, DatabaseEntityDoesNotExist, getUserId, getRole
 from flask_simplelogin import is_logged_in
 from models.role import Role
+from flask import session
 
 
 def check_my_users(user):
@@ -43,7 +44,7 @@ def is_pharmacy(username):
     if not is_logged_in():
         return False
     try:
-        user_id = getUserid(cursor, username)
+        user_id = getUserId(cursor, username)
         return getRole(cursor, user_id)  == Role.PHARMACY
     except DatabaseEntityDoesNotExist:
         return False

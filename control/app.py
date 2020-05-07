@@ -3,7 +3,7 @@ from flask import Flask, render_template, session, request, flash, redirect
 from flask import g
 from flask_simplelogin import SimpleLogin, get_username, login_required, is_logged_in
 from control.login_checks import is_logged_in_as_pharmacy, is_logged_in_as_driver, is_logged_in_as_patient, is_logged_in_as_overlord
-from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord, check_my_users
+from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord, check_my_users, is_doctor
 from models.order_status import OrderStatus
 from models.prescription_status import PrescriptionStatus
 from data.database_handler import close_db

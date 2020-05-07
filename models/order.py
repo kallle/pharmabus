@@ -7,14 +7,6 @@ class Order:
         self._doctor = doctor
         self._pharmacy = pharmacy
 
-    def __init__(self):
-        self._id = None
-        self._status = None
-        self._prescription = None
-        self._patient = None
-        self._doctor = None
-        self._pharmacy = None
-
     @property
     def id(self):
         return self._id
@@ -73,8 +65,10 @@ class Order:
 
     def __repr__(self):
         return ('Order(id={self._id!r}, '
+                'Status={self._status!r}, '
                 'patient={self._patient!r}, '
                 'pharmacy={self._pharmacy!r} '
                 'doctor={self._doctor!r}, '
+                'prescription={self._prescription!r} '
                 ).format(self=self)
 

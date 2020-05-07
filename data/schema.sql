@@ -84,7 +84,7 @@ VALUES ('PRESENT_AT_DOCTOR'),
 CREATE TABLE Prescriptions (
        id                  integer PRIMARY KEY,
        status              text,
-       scan                blob,
+       scan                text,
        FOREIGN KEY (status)
        REFERENCES Prescription_Status(name)
 );

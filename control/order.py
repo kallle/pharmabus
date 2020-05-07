@@ -3,223 +3,332 @@ from flask_simplelogin import SimpleLogin, get_username, login_required, is_logg
 from control.login_checks import is_logged_in_as_pharmacy, is_logged_in_as_driver, is_logged_in_as_patient, is_logged_in_as_overlord
 from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord, check_my_users, is_logged_in_at_all
 import flask
-from flask import Flask, render_template, session, request, flash, redirect
+from flask import Flask, render_template, session, request, flash, redirect, send_file
+from data.dao import DatabaseEntityDoesNotExist, getDoctor, getPatient, getPharmacy, getOrder, insertOrder, addPrescriptionToOrder, updateOrder, deleteOrder
+from data.database_handler import get_db
+from models.prescription_status import PrescriptionStatus
+from control.login_checks import is_doctor, is_patient, is_pharmacy
+from models.order_status import OrderStatus
+from werkzeug.utils import secure_filename
+import tempfile
+import os
 
 
-class RenderTemplate(condition):
-
-    def __init__(self, template):
-        self.template = template
-
-
-def handle_doctor_check(cursor, formStatus):
-    if formStatus.doctor_id is not None:
-        try:
-            return getDoctor(cursor, formStatus.doctor_id)
-        except:
-            flash('Bitte wahle einen existierenden Arzt')
-            raise RenderTemplate(render_template('order/choose_doctor.html', formStatus=formStatus))
-    else:
-        raise RenderTemplate(render_template('order/choose_doctor.html', formStatus=formStatus))
-
-
-def handle_pharmacy_check(cursor, formStatus):
-    if formStatus.pharmacy_id is not None:
-    try:
-        pharmacy = getPharmacy(cursor, formStatus.pharmacy_id)
-    except:
-        flash('Bitte wahle eine existierende Apotheke')
-        raise Render(render_template('order/choose_pharmacy.html', formStatus=formStatus))
-    else:
-        raise Render(render_template('order/choose_pharmacy.html', formStatus=formStatus))
-
+ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'png', 'jpeg'}
 
 class OrderForm:
 
-    def __init__(self, order_id, doctor_id, pharmacy_id, patient_id):
-        self.order_id = order_id
-        self.doctor_id = doctor_id
-        self.pharmacy_id = pharmacy_id
-        self.patient_id = patient_id
+    def __init__(self, order_id=None, doctor_id=None, pharmacy_id=None, patient_id=None):
+        try:
+            self.order_id = int(order_id)
+        except:
+            self.order_id = None
+        try:
+            self.doctor_id = int(doctor_id )
+        except:
+            self.doctor_id = None
+        try:
+            self.pharmacy_id = int(pharmacy_id)
+        except:
+            self.pharmacy_id = None
+        try:
+            self.patient_id = int(patient_id)
+        except:
+            self.patient_id = None
 
-    def __init__(self):
-        self.order_id = None
-        self.doctor_id = None
-        self.pharmacy_id = None
-        self.patient_id = None
+    def complete(self):
+        return (self.order_id is not None and
+                self.doctor_id is not None and
+                self.pharmacy_id is not None and
+                self.patient_id is not None)
+
+    def __str__(self):
+        return "P:{}//A:{}//D:{}//O:{}".format(self.patient_id,
+                                               self.pharmacy_id,
+                                               self.doctor_id,
+                                               self.order_id)
 
 
-def handleOrderUpdate(formStatus):
-    pass
 
-def handleORderCreation(formStatus):
-    pass
+def create_new_order(formStatus):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        print(session.get('simple_user_id'))
+        print(formStatus.patient_id == session.get('simple_user_id'))
+        # if the corresponding patient is not the current user
+        if formStatus.patient_id != session.get('simple_user_id'):
+            raise Exception("given patient does not match current patient")
+        patient = getPatient(cursor, formStatus.patient_id)
+    except DatabaseEntityDoesNotExist:
+        raise Exception("given patient does not exist")
+    doctor = getDoctor(cursor, formStatus.doctor_id)
+    pharmacy = getPharmacy(cursor, formStatus.pharmacy_id)
+    order = insertOrder(cursor, patient, doctor, pharmacy)
+    conn.commit()
+    return order
 
 
-@app.route('order/order_create_order', methods=['GET','POST'])
+def update_pharmacy(formStatus):
+    print('updating pharmacy with {}'.format(formStatus))
+    conn = get_db()
+    cursor = conn.cursor()
+    order = getOrder(cursor, formStatus.order_id)
+    patient = getPatient(cursor, session.get('simple_user_id'))
+    if order.patient.id != patient.id:
+        raise Exception("only the owning patient may change the order")
+    if order.status != OrderStatus.AT_PATIENT:
+        raise Exception("only if the ownership is at the patient may the pharmacy be changed")
+    order = updateOrder(cursor, order, pharmacy_id = formStatus.pharmacy_id)
+    conn.commit()
+    return order
+
+
+def update_doctor(formStatus):
+    print('updating doctor with {}'.format(formStatus))
+    conn = get_db()
+    cursor = conn.cursor()
+    order = getOrder(cursor, formStatus.order_id)
+    patient = getPatient(cursor, session.get('simple_user_id'))
+    if order.patient.id != patient.id:
+        raise Exception("only the owning patient may change the order")
+    if order.status != OrderStatus.AT_PATIENT:
+        raise Exception("only if the ownership is at the patient may the doctor be changed")
+    order = updateOrder(cursor, order, doctor_id = formStatus.order_id)
+    conn.commit()
+    return order
+
+
+# TODO: we need a stronger file check!
+def allowed_file_name(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def update_prescription(formStatus, pstatus, scan):
+    print('{}//{}//{}'.format(formStatus, pstatus, scan))
+    assert formStatus.complete()
+    if scan and allowed_file_name(scan.filename):
+        filename = secure_filename('prescription-{}.{}'.format(formStatus.order_id,
+                                                               scan.filename.split('.')[-1].lower()))
+        instance_path = app.instance_path
+        print(instance_path)
+        path = os.path.join(instance_path, app.config['UPLOAD_FOLDER'], filename)
+        print(path)
+        scan.save(path)
+    else:
+        filename = None
+    conn = get_db()
+    cursor = conn.cursor()
+    if is_patient(session.get('simple_username')):
+        order = getOrder(cursor, formStatus.order_id)
+        patient = getPatient(cursor, session.get('simple_user_id'))
+        if order.patient.id != patient.id:
+            raise Exception('probable hacking attempt, order patient mismatch logged in patient')
+        order = addPrescriptionToOrder(cursor, order, pstatus, scan=filename, supersede=True)
+        conn.commit()
+        return order
+    elif is_doctor(session.get('simple_username')):
+        order = getOrder(cursor, formStatus.order_id)
+        doctor = getDoctor(cursor, session.get('simple_user_id'))
+        if order.doctor.id != doctor.id:
+            raise Exception('probable hacking attempt, doctor patient mismatch logged in doctor')
+        order = addPrescriptionToORder(cursor, order, pstatus, scan=filename, supersede=True)
+        con.commit()
+        return order
+    else:
+        raise Exception("only the patient or doctor may change a prescription")
+
+
+@app.route('/order/create_order', methods=['GET'])
 @login_required(must=[is_logged_in_as_patient])
-def order_create_order():
+def create_order():
     if flask.request.method == 'GET':
         formStatus = OrderForm()
-        return render_template('order/choose_doctor.html', formStatus=formStatus)
+        formStatus.patient_id = session.get('simple_user_id')
+        return render_template('/order/choose_doctor.html', formStatus=formStatus)
+    else:
+        render_template('index.html')
+
+
+@app.route('/order/modify_order', methods=['GET','POST'])
+@login_required(must=[is_logged_in_at_all])
+def modify_order():
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        order = getOrder(cursor, int(flask.request.args.get('order_id')))
+        print(order)
+    except:
+        raise Exception('to be modified order does not exist')
+    if flask.request.method == 'GET':
+        if is_pharmacy(session.get('simple_username')):
+            pharmacy = getPharmacy(cursor, session.get('simple_user_id'))
+            if order.pharmacy.id != pharmacy.id:
+                raise Exception('wrong pharmacy to change order')
+            return render_template('/order/modify_order.html', actor='pharmacy', order=order, pstatus=PrescriptionStatus, ostatus=OrderStatus)
+        elif is_doctor(session.get('simple_username')):
+            doctor = getDoctor(cursor, session.get('simple_user_id'))
+            if order.doctor.id != doctor.id:
+                raise Exception('wrong doctor to change order')
+            return render_template('/order/modify_order.html', actor='doctor', order=order, pstatus=PrescriptionStatus, ostatus=OrderStatus)
+        elif is_patient(session.get('simple_username')):
+            patient = getPatient(cursor, session.get('simple_user_id'))
+            if order.patient.id != patient.id:
+                raise Exception('wrong patient to change order')
+            return render_template('/order/modify_order.html', actor='patient', order=order, pstatus=PrescriptionStatus, ostatus=OrderStatus)
+        else:
+            raise Exception('who is trying to modify an existing order here?')
+    elif flask.request.method == 'POST':
+        pass
+    else:
+        raise Exception('wtf')
+
+
+@app.route('/order/choose_doctor', methods=['GET','POST'])
+@login_required(must=[is_logged_in_as_patient])
+def choose_doctor():
+    if flask.request.method == 'GET':
+        formStatus = OrderForm(flask.request.args.get('order_id'),
+                               flask.request.args.get('doctor_id'),
+                               flask.request.args.get('pharmacy_id'),
+                               flask.request.args.get('patient_id'))
+        print('choosing new doctor')
+        print(formStatus)
+        return render_template('/order/choose_doctor.html', formStatus=formStatus)
     elif flask.request.method == 'POST':
         formStatus = OrderForm(flask.request.form.get('order_id'),
                                flask.request.form.get('doctor_id'),
                                flask.request.form.get('pharmacy_id'),
                                flask.request.form.get('patient_id'))
-        try:
-            if formStatus.order_id:
-                handleOrderUpdate(formStatus)
-            else:
-                handleOrderCreation(formStatus)
-            # check if we have a valid doctor
-            doctor = handle_doctor_check(cursor, formStatus)
-            # check if we have a valid pharmacy
-            pharmacy_id = handle_pharmacy_check(cursor, formStatus)
-            # check if the current user exists (just to make sure)
-            try:
-                patient = getPatient(cursor, session.get('simple_user_id'))
-            except:
-                # if the user does not exist something very wrong is going on
-                return render_template('index.html')
-            # check if the order already has an id
-            if formStatus.order_id is None:
-                # if not the order is new and needs to be inserted for the current patient
-                order = insertOrder(cursor, patient, doctor, pharmacy)
-                conn.commit()
-                # and the upload prescription form needs to be rendered for uploading the prescription
-                return render_template('upload_prescription.html', order=order)
-            else:
-                # if the order exists
-                try:
-                    # get the order from the database
-                    order = getOrder(cursor, order_id)
-                    if not order.patient.id != patient.id:
-                        # if the current patient does not match the order
-                        return render_template('index.html')
-                    else:
-                        updateOrder(cursor, order)
-                        conn.commit()
-                        flash('Order erfolgreich geaendert')
-                        return render_template('index.html')
-                except DatabaseEntityDoesNotExist:
-                    # this is odd and probably a hacking attempt
-                    return render_template('index.html')
-        except RenderTemplate as signal:
-            return signal.template
-    else:
-        render_template('index.html')
-
-
-@app.route('/order_choose_doctor', methods=['GET', 'POST'])
-@login_required(must=[is_logged_in_as_patient])
-def order_choose_doctor():
-    conn = get_db()
-    cursor = conn.cursor()
-    if flask.request.method == 'POST':
-        doctor_id = flask.request.form.get('doctor')
-        try:
-            doctor = getDoctor(cursor, doctor_id)
-        except DatabaseEntityDoesNotExist:
-            flash('Dieser Doktor existiert nicht')
-            return render_template('order_choose_doctor.html')
-        return render_template('order_choose_pharmacy.html', doctor_id=doctor_id)
-    else:
-        return render_template("order_choose_doctor.html")
-
-
-@app.route('/order_choose_pharmacy', methods=['GET', 'POST'])
-@login_required(must=[is_logged_in_as_patient])
-def order_choose_pharmacy():
-    if flask.request.method == 'POST':
-        doctor_id = flask.request.form.get('doctor_id')
-        try:
-            pharmacy_id = flask.request.form.get('pharmacy')
-        except DatabaseEntityDoesNotExist:
-            flash('Diese Apotheke existiert nicht')
-            return render_template('order_choose_pharmacy.html', doctor_id=doctor_id)
-        return render_template('order_upload_prescription.html', doctor_id=doctor_id, pharmacy_id=pharmacy_id)
-    else:
-        return render_template("order_choose_doctor.html")
-
-
-@app.route('/order_upload_prescription', methods=['GET', 'POST'])
-@login_required(must=[is_logged_in_as_patient])
-def order_upload_prescription():
-    if flask.request.method == "POST":
-        doctor_id = flask.request.form.get('doctor_id')
-        pharmacy_id = flask.request.form.get('pharmacy_id')
-        prescription_location = flask.request.form.get('prescription_location')
-        status = PrescriptionStatus.PRESENT_AT_DOCTOR if flask.request.form.get('prescription_location') == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
-        scan = flask.request.form.get('scan')
+        print(formStatus)
         conn = get_db()
         cursor = conn.cursor()
-        try:
-            doctor = getDoctor(cursor, doctor_id)
-            pharmacy = getPharmacy(cursor, pharmacy_id)
-            patient = getPatient(cursor, session.get('simple_user_id'))
-        except DatabaseEntityDoesNotExist:
-            flash('Ups, da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
-            return render_template('order_choose_doctor')
-        order = insertOrder(cursor, patient, doctor, pharmacy)
-        order = addPrescriptionToOrder(cursor, order, status, scan)
-        conn.commit()
-        flash('Bestellung erfolgreich eingetragen')
-        return render_template('index.html')
-    else:
-        return render_template('order_choose_doctor.html')
-
-
-@app.route('/modify_order', methods=['GET','POST'])
-@login_required(must=[is_logged_in_at_all])
-def modify_order():
-    conn = get_db()
-    cursor = conn.cursor()
-    if flask.request.method == "GET":
-        order_id = flask.request.args.get('order_id')
-    else:
-        order_id = flask.request.form.get("order_id")
-    if not order_id:
-        raise Exception("Order Id expected for cancellation")
-    try:
-        order = getOrder(cursor, order_id)
-    except DatabaseEntityDoesNotExist:
-        flash('Uups da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
-        return render_template('index.html')
-    if not order_status_corresponds_to_user_role(order.status):
-        flash('Tut uns leid, aber diese Bestellung kann von dir aktuell nicht geändert werden')
-        return render_template('index.html')
-    if flask.request.method == "POST":
-        username = session.get('simple_username')
-        if is_user(username):
-            pharmacy_id = flask.request.form.get('pharmacy')
-            doctor_id = flask.request.form.get('doctor')
-            location = flask.request.form.get('prescription_location')
-            scan = flask.request.form.get('scan')
+        if formStatus.doctor_id is not None:
             try:
-                pharmacy = getPharmacy(cursor, pharmacy_id)
-                doctor = getDoctor(cursor, doctor_id)
-                status = PrescriptionStatus.PRESENT_AT_DOCTOR if flask.request.form.get('prescription_location') == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
+                doctor = getDoctor(cursor, formStatus.doctor_id)
             except DatabaseEntityDoesNotExist:
-                flash('Uups da ist wohl etwas schief gelaufen. Probiere es doch bitte noch einmal')
-                return render_template("modify_order.html", order=order)
-        elif is_doctor(username):
-            pass
-        elif is_pharmacy(username):
-            pass
-        flash('Änderung erfolgreich übernommen')
-        return render_template("index.html")
+                flash('Bitte waehle einen existierenden Arzt')
+                return render_template('/order/choose_doctor.html', formStatus=formStatus)
+        else:
+            flash('Bitte wahle einen Arzt aus')
+            return render_template('/order/choose_doctor.html', formStatus=formStatus)
+        # if we reached this point the doctor exists and we have to decide what the
+        # next step is
+        if formStatus.complete():
+            # if the form is already complete, this is an update (further sanity checks performed there)
+            print('form complete')
+            order = update_doctor(formStatus)
+            return render_template('/order/modify_order.html', order=order, actor='patient', pstatus=PrescriptionStatus, ostatus=OrderStatus)
+        else:
+            # if the form is incomplete, this is a new order creation (further sanity checks performed there)
+            print('form incomplete')
+            return render_template('/order/choose_pharmacy.html', formStatus=formStatus)
+    else:
+        return render_template('index.html')
+
+
+@app.route('/order/choose_pharmacy', methods=['GET', 'POST'])
+@login_required(must=[is_logged_in_as_patient])
+def choose_pharmacy():
+    # this function should only be reached via POST
+    if flask.request.method == 'GET':
+        formStatus = OrderForm(flask.request.args.get('order_id'),
+                               flask.request.args.get('doctor_id'),
+                               flask.request.args.get('pharmacy_id'),
+                               flask.request.args.get('patient_id'))
+        print('choosing new pharmacy')
+        print(formStatus)
+        return render_template('/order/choose_pharmacy.html', formStatus=formStatus)
+    elif flask.request.method == 'POST':
+        formStatus = OrderForm(flask.request.form.get('order_id'),
+                               flask.request.form.get('doctor_id'),
+                               flask.request.form.get('pharmacy_id'),
+                               flask.request.form.get('patient_id'))
+        print(formStatus)
+        conn = get_db()
+        cursor = conn.cursor()
+        if formStatus.pharmacy_id is not None:
+            try:
+                pharmacy = getPharmacy(cursor, formStatus.pharmacy_id)
+            except:
+                flash('Bitte wahle eine existierende Apotheke')
+                return render_template('order/choose_pharmacy.html', formStatus=formStatus)
+        else:
+            return render_template('order/choose_pharmacy.html', formStatus=formStatus)
+        # if we reached this point the pharmacy exists and we have to decide what the
+        # next step is
+        if formStatus.complete():
+            # if the form is already complete, this is an update (further sanity checks performed there)
+            order = update_pharmacy(formStatus)
+            return render_template('order/modify_order.html', order=order, actor='patient', pstatus=PrescriptionStatus, ostatus=OrderStatus)
+        else:
+            # if the form is incomplete, this is a new order creation (further sanity checks performed there)
+            order = create_new_order(formStatus)
+            return render_template('order/change_prescription.html', order=order)
+    else:
+        return render_template('index.html')
+
+
+@app.route('/order/change_prescription', methods=['GET', 'POST'])
+@login_required(must=[is_logged_in_at_all]) # doctor and patient can change the prescription
+def upload_prescription():
+    # this function should only be reached via POST
     if flask.request.method == "GET":
-        return render_template("modify_order.html", order=order)
+        formStatus = OrderForm(flask.request.args.get('order_id'),
+                               flask.request.args.get('doctor_id'),
+                               flask.request.args.get('pharmacy_id'),
+                               flask.request.args.get('patient_id'))
+        conn = get_db()
+        cursor = conn.cursor()
+        order = getOrder(cursor, formStatus.order_id)
+        if is_patient(session.get('simple_username')):
+            patient = getPatient(cursor, formStatus.patient_id)
+            if order.patient.id != patient.id:
+                raise Exception('invalid patient to change that order')
+        elif is_doctor(session.get('simple_username')):
+            doctor = getDoctor(cursor, formStatus.doctor_id)
+            if order.doctor.id != doctor.id:
+                raise Exception('invalid doctor to change that oder')
+        else:
+            raise Exception('invalid user role to change a prescription')
+        return render_template('/order/change_prescription.html', order=order)
+    if flask.request.method == "POST":
+        formStatus = OrderForm(flask.request.form.get('order_id'),
+                               flask.request.form.get('doctor_id'),
+                               flask.request.form.get('pharmacy_id'),
+                               flask.request.form.get('patient_id'))
+        if not formStatus.complete():
+            flash('Uups something went wrong.')
+            return render_template('index.html')
+        plocation = flask.request.form.get('prescription_location')
+        status = PrescriptionStatus.PRESENT_AT_DOCTOR if plocation == "doctor" else PrescriptionStatus.PRESENT_AT_PATIENT
+        # print('request {}'.format(flask.request.form))
+        # print('files {}'.format(flask.request.files))
+        if 'prescription' not in flask.request.files:
+            order = update_prescription(formStatus, status, None)
+        else:
+            if flask.request.files['prescription'].filename == '':
+                order = update_prescription(formStatus, status, None)
+            else:
+                order = update_prescription(formStatus, status, flask.request.files['prescription'])
+        if is_patient(session.get('simple_username')):
+            actor = 'patient'
+        elif is_doctor(session.get('simple_username')):
+            actor = 'doctor'
+        else:
+            raise Exception('wtf')
+        return render_template('order/modify_order.html', order=order, actor=actor, pstatus=PrescriptionStatus, ostatus=OrderStatus)
+    else:
+        return render_template('index.html')
 
 
-@app.route('/cancel_order', methods=['GET'])
+@app.route('/order/cancel_order', methods=['GET'])
 @login_required(must=[is_logged_in_as_patient])
 def cancel_order():
     conn = get_db()
     cursor = conn.cursor()
     order_id = flask.request.args.get('order_id')
-    if not order_id:
+    if order_id is None:
         raise Exception("Order Id expected for cancellation")
     order = getOrder(cursor, order_id)
     patient = getPatient(cursor, session.get('simple_user_id'))
@@ -230,3 +339,34 @@ def cancel_order():
         conn.commit()
     flash('Bestellung erfolgreich gecancelt')
     return render_template('index.html')
+
+
+@app.route('/order/download_prescription', methods=['POST'])
+@login_required(must=[is_logged_in_at_all])
+def download_prescription():
+    if flask.request.method == 'POST':
+        formStatus = OrderForm(flask.request.form.get('order_id'),
+                               flask.request.form.get('doctor_id'),
+                               flask.request.form.get('pharmacy_id'),
+                               flask.request.form.get('patient_id'))
+        conn = get_db()
+        cursor = conn.cursor()
+        order = getOrder(cursor, formStatus.order_id)
+        if is_patient(session.get('simple_username')):
+            patient = getPatient(cursor, formStatus.patient_id)
+            if order.patient.id != patient.id:
+                raise Exception('download denied')
+        elif is_doctor(session.get('simple_username')):
+            doctor = getDoctor(cursor, formStatus.doctor_id)
+            if order.doctor.id != doctor.id:
+                raise Exception('download denied')
+        elif is_pharmacy(session.get('simple_username')):
+            pharmacy = getPharmacy(cursor, formStatus.pharmacy_id)
+            if order.pharmacy.id != pharmacy.id:
+                raise Exception('download denied')
+        else:
+            raise Exception('wtf')
+        prescription_file = os.path.join(app.instance_path, app.config['UPLOAD_FOLDER'], order.prescription.scan)
+        return send_file(prescription_file, as_attachment=True)
+    else:
+        raise Exception('wtf')

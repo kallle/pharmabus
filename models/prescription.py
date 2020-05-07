@@ -28,3 +28,9 @@ class Prescription:
     @scan.setter
     def scan(self,value):
         raise Exception("this is a read only object")
+
+    def __repr__(self):
+        return ('Prescription(id={self._id!r}, '
+                'status={self._status!r}, '
+                'file=present' if self.scan is not None else 'file=missing'
+                ')').format(self=self)

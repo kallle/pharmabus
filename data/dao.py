@@ -378,10 +378,15 @@ def deleteOrder(cursor, order):
     cursor.execute(query,(order.id,))
 
 
-def updateOrder(cursor, order):
-    if order.prescription is not None:
-        raise Exception("I have to continue here")
-
+def updateOrder(cursor, order, pharmacy_id=None, doctor_id=None):
+    query = """UPDATE Orders
+               SET pharmacy = ?,
+                   doctor = ?
+               WHERE id = ?"""
+    cursor.execute(query,(order.pharmacy.id if pharmacy_id is None else pharmacy_id,
+                          order.doctor.id if doctor_id is None else doctor_id,
+                          order.id))
+    return order
 
 # this function must never be used outside of this file
 def getPrescription(cursor, rowId):
@@ -432,12 +437,13 @@ def updateOrderStatus(cursor, order, order_status):
 
 def addPrescriptionToOrder(cursor, order, status, scan=None, supersede=False):
     assert status in [PrescriptionStatus.PRESENT_AT_DOCTOR, PrescriptionStatus.PRESENT_AT_PATIENT]
+    print(order)
     prescription = order.prescription
     if (prescription is not None):
         if not supersede:
             raise OrderAlreadyHasPrescription()
         else:
-            deletePrescription(cursor, order.prescription.id)
+            deletePrescription(cursor, prescription)
     prescription = insertPrescription(cursor, status, scan)
     query = """UPDATE Orders
                SET prescription = ?
