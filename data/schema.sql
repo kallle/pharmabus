@@ -100,7 +100,7 @@ CREATE TABLE Stop_Types (
 );
 
 INSERT INTO Stop_Types (name)
-VALUES ('pick_up_recipe'),
+VALUES ('pick_up_prescription'),
        ('pick_up_med'),
        ('drop_off');
 
