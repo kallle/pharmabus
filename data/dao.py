@@ -14,6 +14,7 @@ from models.prescription_status import PrescriptionStatus
 from models.stock import Stock
 from models.prescription import Prescription
 from models.doctor import Doctor
+import os
 
 
 class DatabaseEntityDoesNotExist(Exception):
@@ -415,6 +416,10 @@ def insertPrescription(cursor, status, scan):
 
 
 def deletePrescription(cursor, prescription):
+    if prescription.scan is not None:
+        prescription_file = os.path.join(app.instance_path, app.config['UPLOAD_FOLDER'], order.prescription.scan)
+        if os.path.exists(prescription_file):
+            os.remove(prescription_file)
     query = """DELETE FROM Prescriptions
                WHERE id = ?"""
     print('pres: {}'.format(prescription))

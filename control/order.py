@@ -322,6 +322,7 @@ def upload_prescription():
         return render_template('index.html')
 
 
+#TODO: need to also delete uploaded prescriptions
 @app.route('/order/cancel_order', methods=['GET'])
 @login_required(must=[is_logged_in_as_patient])
 def cancel_order():
@@ -335,8 +336,9 @@ def cancel_order():
     if patient.id != order.patient.id:
         raise Exception("Only the order owning patient can cancel")
     else:
-        deleteOrder(cursor, order)
-        conn.commit()
+        if order.status in [OrderStatus.AT_PATIENT, OrderStatus.AT_DRIVER]:
+            deleteOrder(cursor, order)
+            conn.commit()
     flash('Bestellung erfolgreich gecancelt')
     return render_template('index.html')
 

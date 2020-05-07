@@ -72,10 +72,17 @@
           {% endif %}
         </ul>
       </li>
-      {% if actor == 'patient' and order.status == ostatus.AT_PATIENT %}
-      <li>
-        <a href='/order/cancel_order?order_id={{ order.id }}'>Cancel</a>
-      </li>
+      {% if actor == 'patient' %}
+         {% if order.status == ostatus.AT_PATIENT %}
+         <li>
+           <a href='/order/cancel_order?order_id={{ order.id }}'>Cancel</a>
+         </li>
+         {% endif %}
+         {% if order.status == ostatus.AT_DRIVER %}
+         <li>
+           <a href='/order/cancel_order?order_id={{ order.id }}'>Bestaetige Empfang/Loeschen aller Daten</a>
+         </li>
+         {% endif %}
       {% endif %}
       {% if actor == 'pharmacy' and order.status == ostatus.AT_PHARMACY %}
       <li>
