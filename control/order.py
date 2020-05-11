@@ -4,7 +4,9 @@ from control.login_checks import is_logged_in_as_pharmacy, is_logged_in_as_drive
 from control.login_checks import is_pharmacy, is_driver, is_patient, is_overlord, check_my_users, is_logged_in_at_all
 import flask
 from flask import Flask, render_template, session, request, flash, redirect, send_file
-from data.dao import DatabaseEntityDoesNotExist, getDoctor, getPatient, getPharmacy, getOrder, insertOrder, addPrescriptionToOrder, updateOrder, deleteOrder, updateOrderStatus
+from models.DatabaseEntityDoesNotExist import DatabaseEntityDoesNotExist
+from data.daoUser import getDoctor, getPatient, getPharmacy
+from data.daoOrder import getOrder, insertOrder, addPrescriptionToOrder, updateOrder, deleteOrder, updateOrderStatus
 from data.database_handler import get_db
 from models.prescription_status import PrescriptionStatus
 from control.login_checks import is_doctor, is_patient, is_pharmacy

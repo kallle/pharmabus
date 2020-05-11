@@ -2,9 +2,10 @@ from control.app import app
 import flask
 from flask_simplelogin import login_required
 from data.database_handler import get_db
-from data.dao import getAllDrivers, getAllPharmacies, getAllOrdersByStatus, getAllActiveDrivers
+from data.daoUser import getAllDrivers, getAllPharmacies, getAllActiveDrivers
+from data.daoOrder import getAllOrdersByStatus
 from models.order_status import OrderStatus
-from data.routeHandling import insertNewRoute
+from data.daoRoute import insertNewRoute
 from control.login_checks import is_logged_in_as_overlord
 from pathsolver.path_step_generator import generatePossibleDriverPharmacySet, generatePossibleDriverOrderSet, calculateDriverSetsIntersection, deliverySetSplitter, travellingSalesMan
 from models.route import Route

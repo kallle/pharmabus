@@ -1,7 +1,9 @@
 from control.app import app
 from data.database_handler import get_db
 from flask import session, render_template
-from data.dao import getUserId, getAllOrdersFiltertForUser, DatabaseEntityDoesNotExist
+from models.DatabaseEntityDoesNotExist import DatabaseEntityDoesNotExist
+from data.daoUser import getUserId
+from data.daoOrder import getAllOrdersFiltertForUser
 from control.login_checks import is_patient, is_doctor, is_pharmacy
 from models.role import Role
 

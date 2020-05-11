@@ -143,7 +143,7 @@ def getPharmacy(cursor, row_id):
                         pharmacy[10])
 
 
-    def getDriver(cursor, row_id):
+def getDriver(cursor, row_id):
     query = """SELECT id,
                       email,
                       surname,

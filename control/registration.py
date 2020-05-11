@@ -2,7 +2,7 @@ from control.app import app
 import flask
 from flask import render_template, session, request, flash, redirect
 from data.database_handler import get_db
-from data.dao import registerPharmacy, registerPatient, registerDoctor, registerDriver
+from data.daoUser import registerPharmacy, registerPatient, registerDoctor, registerDriver
 
 
 @app.route('/register_pharmacy', methods=['GET', 'POST'])

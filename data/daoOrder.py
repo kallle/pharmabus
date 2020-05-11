@@ -1,9 +1,11 @@
 from models.order_status import OrderStatus
-from moels.order import Order
+from models.order import Order
 import os
 from models.DatabaseEntityDoesNotExist import DatabaseEntityDoesNotExist
 from models.prescription_status import PrescriptionStatus
 from models.prescription import Prescription
+from data.daoUser import translateRoleToString
+
 
 def getOrder(cursor, row_id):
     query = """SELECT id,

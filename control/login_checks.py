@@ -1,5 +1,5 @@
 from data.database_handler import get_db
-from data.dao import checkLogin, DatabaseEntityDoesNotExist, getUserId, getRole
+from data.daoUser import checkLogin, DatabaseEntityDoesNotExist, getUserId, getRole
 from flask_simplelogin import is_logged_in
 from models.role import Role
 from flask import session
